@@ -1,5 +1,7 @@
-const mysql = require("mysql");
-require("dotenv").config();
+import mysql from 'mysql';
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const connection = mysql.createConnection({
   host: process.env.BDD_HOST,
@@ -16,4 +18,4 @@ connection.connect((err) => {
   console.log("Connecté à la base de données MySQL");
 });
 
-module.exports = connection;
+export default connection;

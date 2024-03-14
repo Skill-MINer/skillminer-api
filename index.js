@@ -3,16 +3,12 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import swaggerUi from "swagger-ui-express";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
 import fs from "fs";
 import { auth } from "./middleware/authentication.js";
-import { login, resetRequest, resetPassword } from "./services/login.js";
-import protectedService from "./services/protected.js";
 
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+import * as login from "./services/login.js";
+import { protectedService } from "./services/protected.js";
+import * as user from "./services/user.js";
 
 const swaggerFile = JSON.parse(fs.readFileSync("./swagger/swagger-output.json", "utf-8"));
 
@@ -27,9 +23,13 @@ const corsOptions = {
 
 app.use(cors(corsOptions), bodyParser.json());
 
-app.post("/login", login);
-app.post("/reset-request", resetRequest);
-app.post("/reset-password/:token", resetPassword);
+app.post("/login", login.login);
+app.post("/reset-request", login.resetRequest);
+app.post("/reset-password/:token", login.resetPassword);
+
+app.get("/users", auth, user.getUsers);
+app.get("/users/:id", auth, user.getUser);
+app.post("/users", user.addUser);
 
 app.get("/protected", auth, protectedService);
 

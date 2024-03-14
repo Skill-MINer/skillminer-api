@@ -1,13 +1,17 @@
-import jwt from "jsonwebtoken";
-import nodemailer from "nodemailer";
+import jwt from 'jsonwebtoken';
+import nodemailer from 'nodemailer';
 import dotenv from "dotenv";
+import bcrypt from "bcrypt";
+import connection from '../database/database.js';
 
 dotenv.config();
 
 const secretKey = process.env.SECRET_KEY;
+const secretKeyReset = process.env.SECRET_KEY_RESET;
 const tokenExpirationTimeResetPassword = "10m";
-const tokenExpirationTime = "1h";
+const tokenExpirationTime = "4h";
 const urlFront = process.env.URL_FRONT;
+const fromEmail = process.env.EMAIL;
 
 const transporter = nodemailer.createTransport({
   service: "Gmail",
@@ -15,68 +19,119 @@ const transporter = nodemailer.createTransport({
   port: 465,
   secure: true,
   auth: {
-    user: process.env.EMAIL,
+    user: fromEmail,
     pass: process.env.PASSWORD,
   },
 });
 
 export const resetRequest = (req, res) => {
-  const { email } = req.body;
+  const email = req.body.email;
+  if (!email) {
+    return res.status(400).json({ error: "Email manquant." });
+  }
 
-  // Génération d'un token pour la réinitialisation du mot de passe
-  const token = jwt.sign({ email }, secretKey, {
-    expiresIn: tokenExpirationTimeResetPassword,
-  });
+  connection.query(
+    "SELECT id, email FROM user WHERE email = ?",
+    [email],
+    (err, results) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      if (results.length === 0) {
+        return res.status(401).json({ error: "Utilisateur non trouvé." });
+      }
 
-  // Construction du lien de réinitialisation du mot de passe
-  const resetLink = `${urlFront}/reset-password/${token}`;
+      const token = jwt.sign(
+        { id: results[0].id, email: results[0].email },
+        secretKeyReset,
+        {
+          expiresIn: tokenExpirationTimeResetPassword,
+        }
+      );
 
-  // Configuration de l'email
-  const mailOptions = {
-    from: process.env.EMAIL,
-    to: email,
-    subject: "Réinitialisation du mot de passe",
-    text: `Cliquez sur le lien suivant pour réinitialiser votre mot de passe: ${resetLink}`,
-  };
+      const resetLink = `${urlFront}/reset-password/${token}`;
 
-  // Envoi de l'email
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.log(error);
-      res
-        .status(500)
-        .json({ error: "Une erreur est survenue lors de l'envoi de l'email." });
-    } else {
-      console.log(`Email sent: ${info.response}`);
-      res.status(200).json({ message: "Email de réinitialisation envoyé." });
+      const mailOptions = {
+        from: fromEmail,
+        to: email,
+        subject: "Réinitialisation du mot de passe SkillMINer",
+        text: `Cliquez sur ce lien pour réinitialiser votre mot de passe : ${resetLink}`,
+      };
+
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          return res
+            .status(500)
+            .json({ error: "Erreur lors de l'envoi de l'email." });
+        }
+        res.status(200).json({ message: "Email envoyé avec succès." });
+      });
     }
-  });
+  );
 };
 
-export const resetPassword = (req, res) => {
-  const { token } = req.params;
-  const { newPassword } = req.body;
+export const resetPassword = async (req, res) => {
+  const token = req.body.token;
+  const password = req.body.password;
 
-  jwt.verify(token, secretKey, (err) => {
+  if (!token || !password) {
+    return res
+      .status(400)
+      .json({ error: "Token ou mot de passe manquant." });
+  }
+
+  jwt.verify(token, secretKeyReset, async (err, data) => {
     if (err) {
       return res.status(403).json({ error: "Token invalide." });
     }
-    res.status(200).json({ message: "Mot de passe réinitialisé avec succès." });
+
+    const id = data.id;
+    const hashPassword = await bcrypt.hash(password, 10);
+
+    connection.query(
+      "UPDATE user SET password = ? WHERE id = ?",
+      [hashPassword, id],
+      (err, results) => {
+        if (err) {
+          return res.status(500).json({ error: err.message });
+        }
+        res.status(200).json({ message: "Mot de passe modifié avec succès." });
+      }
+    );
   });
 };
 
-export const login = (req, res) => {
-  const { email, password } = req.body;
-  const id = `id_${email}`;
-
-  if (!id || !password) {
+export const login = async (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+  if (!email || !password) {
     return res
       .status(400)
       .json({ error: "Nom d'utilisateur ou mot de passe manquant." });
   }
 
-  const token = jwt.sign({ id }, secretKey, {
-    expiresIn: tokenExpirationTime,
-  });
-  return res.json({ token });
+  connection.query(
+    "SELECT id, password FROM user WHERE email = ?",
+    [email],
+    async (err, results) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      if (results.length === 0) {
+        return res.status(401).json({ error: "Utilisateur non trouvé." });
+      }
+
+      const hashPassword = results[0].password;
+      const id = results[0].id;
+      const result = await bcrypt.compare(password, hashPassword);
+      if (!result) {
+        return res.status(401).json({ error: "Mot de passe incorrect." });
+      }
+
+      const token = jwt.sign({ id: id }, secretKey, {
+        expiresIn: tokenExpirationTime,
+      });
+      res.json({ token: token });
+    }
+  );
 };

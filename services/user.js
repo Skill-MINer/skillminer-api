@@ -1,11 +1,64 @@
-const connection = require("../database/database");
+import connection from '../database/database.js';
+import bcrypt from 'bcrypt';
 
-exports.getUsers = (req, res) => {
-  connection.query("SELECT * FROM users", (err, results) => {
+export const getUsers = (req, res) => {
+  req.query.limit = parseInt(req.query.limit);
+  req.query.offset = parseInt(req.query.offset);
+  const limit = req.query.limit < 50 && req.query.limit > 0 ? req.query.limit : 10;
+  const offset = req.query.offset > 0 ? req.query.offset : 0;
+
+  if (isNaN(limit) || isNaN(offset)) {
+    return res.status(400).json({ error: "Mauvais format de la limite ou du décalage" });
+  }
+
+  connection.query('SELECT nom, prenom, email, date_inscription FROM user LIMIT ? OFFSET ?', [limit, offset], (err, results) => {
     if (err) {
       res.status(500).json({ error: err.message });
+    } else if (results.length === 0) {
+      res.status(404).json({ error: "Utilisateur non trouvé" });
     } else {
       res.status(200).json(results);
     }
   });
 };
+
+export const getUser = (req, res) => {
+  const id = req.params.id;
+  if (isNaN(id)) {
+    return res.status(400).json({ error: "Mauvais format de l'identifiant" });
+  }
+
+  connection.query(`
+  SELECT nom, prenom, email, date_inscription 
+  FROM user WHERE id = ?`,
+  [id], (err, results) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+    } else if (results.length === 0) {
+      res.status(404).json({ error: "Utilisateur non trouvé" });
+    } else {
+      res.status(200).json(results[0]);
+    }
+  });
+};
+
+export const addUser = async (req, res) => {
+  const { nom, prenom, email, password } = req.body;
+  if (!nom || !prenom || !email || !password) {
+    return res.status(400).json({ error: "Body invalide" });
+  }
+
+  const hashPassword = await bcrypt.hash(password, 10);
+  const dateInscription = new Date();
+
+  connection.query(`
+  INSERT INTO user (nom, prenom, email, password, date_inscription, permission) 
+  VALUES (?, ?, ?, ?, ?, ?)`, [ nom, prenom, email, hashPassword, dateInscription, 0 ], 
+  (err, results) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+    } else {
+      res.status(200).json({ id: results.insertId });
+    }
+  });
+}

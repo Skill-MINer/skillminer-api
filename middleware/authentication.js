@@ -1,5 +1,5 @@
-import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
 
 dotenv.config();
 
@@ -13,12 +13,12 @@ export const auth = (req, res, next) => {
       .status(401)
       .json({ error: "Accès non autorisé. Token manquant." });
 
-  jwt.verify(token, secretKey, (err, user) => {
+  jwt.verify(token, secretKey, (err, data) => {
     if (err)
       return res
         .status(403)
         .json({ error: "Accès non autorisé. Token invalide." });
-    req.user = user;
+    req.id = data.id;
     next();
   });
 };
