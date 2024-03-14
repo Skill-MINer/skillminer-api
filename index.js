@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import swaggerUi from "swagger-ui-express";
 import fs from "fs";
 import { auth } from "./middleware/authentication.js";
+import multer from 'multer';
 
 import * as login from "./services/login.js";
 import { protectedService } from "./services/protected.js";
@@ -20,9 +21,9 @@ const corsOptions = {
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
   credentials: true,
 };
+const uploadUser = multer({ dest: 'public/users/' });
 
 app.use(cors(corsOptions), bodyParser.json());
-
 app.post("/login", login.login);
 app.post("/reset-request", login.resetRequest);
 app.post("/reset-password", login.resetPassword);
@@ -33,6 +34,8 @@ app.post("/users", user.add);
 
 app.get("/protected", auth, protectedService);
 
+app.post("/file/users", auth, uploadUser.single('file'), user.uploadPhoto);
+app.use('/file', express.static('public'));
 app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerFile));
 
 app.use("/", (req, res) => {
