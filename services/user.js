@@ -14,7 +14,7 @@ export const findAll = (req, res) => {
     return res.status(400).json({ error: "Mauvais format de la limite ou du décalage" });
   }
 
-  connection.query('SELECT nom, prenom, email, date_inscription FROM user LIMIT ? OFFSET ?', [limit, offset], (err, results) => {
+  connection.query('SELECT id, nom, prenom, email, date_inscription FROM user LIMIT ? OFFSET ?', [limit, offset], (err, results) => {
     if (err) {
       res.status(500).json({ error: err.message });
     } else if (results.length === 0) {
@@ -32,7 +32,7 @@ export const findById = (req, res) => {
   }
 
   connection.query(`
-  SELECT nom, prenom, email, date_inscription 
+  SELECT id, nom, prenom, email, date_inscription 
   FROM user WHERE id = ?`,
   [id], (err, results) => {
     if (err) {
