@@ -1,5 +1,7 @@
-const swaggerAutogen = require("swagger-autogen")();
-require('dotenv').config();
+import swaggerAutogen from "swagger-autogen";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const doc = {
   info: {
@@ -10,5 +12,5 @@ const doc = {
 };
 
 const outputFile = "./swagger-output.json";
-const routes = ["../index.js"];
-swaggerAutogen(outputFile, routes, doc);
+const routes = ["../index.mjs"];
+swaggerAutogen()(outputFile, routes, doc);

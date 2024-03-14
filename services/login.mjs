@@ -1,6 +1,8 @@
-const jwt = require("jsonwebtoken");
-const nodemailer = require("nodemailer");
-require('dotenv').config();
+import jwt from "jsonwebtoken";
+import nodemailer from "nodemailer";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const secretKey = process.env.SECRET_KEY;
 const tokenExpirationTimeResetPassword = "10m";
@@ -18,11 +20,11 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-exports.resetRequest = (req, res) => {
-  const email = req.body.email;
+export const resetRequest = (req, res) => {
+  const { email } = req.body;
 
   // Génération d'un token pour la réinitialisation du mot de passe
-  const token = jwt.sign({ email: email }, secretKey, {
+  const token = jwt.sign({ email }, secretKey, {
     expiresIn: tokenExpirationTimeResetPassword,
   });
 
@@ -31,28 +33,31 @@ exports.resetRequest = (req, res) => {
 
   // Configuration de l'email
   const mailOptions = {
-    from: "votre_adresse_email",
+    from: process.env.EMAIL,
     to: email,
-    subject: "Réinitialisation du mot de passe SkillMINer",
-    text: `Cliquez sur ce lien pour réinitialiser votre mot de passe : ${resetLink}`,
+    subject: "Réinitialisation du mot de passe",
+    text: `Cliquez sur le lien suivant pour réinitialiser votre mot de passe: ${resetLink}`,
   };
 
   // Envoi de l'email
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
-      return res
+      console.log(error);
+      res
         .status(500)
-        .json({ error: "Erreur lors de l'envoi de l'email." });
+        .json({ error: "Une erreur est survenue lors de l'envoi de l'email." });
+    } else {
+      console.log(`Email sent: ${info.response}`);
+      res.status(200).json({ message: "Email de réinitialisation envoyé." });
     }
-    res.status(200).json({ message: "Email envoyé avec succès." });
   });
 };
 
-exports.resetPassword = (req, res) => {
-  const token = req.params.token;
-  const newPassword = req.body.newPassword;
+export const resetPassword = (req, res) => {
+  const { token } = req.params;
+  const { newPassword } = req.body;
 
-  jwt.verify(token, secretKey, (err, user) => {
+  jwt.verify(token, secretKey, (err) => {
     if (err) {
       return res.status(403).json({ error: "Token invalide." });
     }
@@ -60,9 +65,8 @@ exports.resetPassword = (req, res) => {
   });
 };
 
-exports.login = (req, res) => {
-  const email = req.body.email;
-  const password = req.body.password;
+export const login = (req, res) => {
+  const { email, password } = req.body;
   const id = `id_${email}`;
 
   if (!id || !password) {
@@ -71,8 +75,8 @@ exports.login = (req, res) => {
       .json({ error: "Nom d'utilisateur ou mot de passe manquant." });
   }
 
-  const token = jwt.sign({ id: id }, secretKey, {
+  const token = jwt.sign({ id }, secretKey, {
     expiresIn: tokenExpirationTime,
   });
-  res.json({ token: token });
+  return res.json({ token });
 };
