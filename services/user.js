@@ -1,6 +1,7 @@
 import connection from '../database/database.js';
 import bcrypt from 'bcrypt';
 import { verifyEmail, verifyPassword } from '../scripts/verification.js';
+import { createToken } from '../scripts/createToken.js';
 
 
 export const findAll = (req, res) => {
@@ -63,7 +64,8 @@ export const add = async (req, res) => {
     if (err) {
       res.status(500).json({ error: err.message });
     } else {
-      res.status(200).json({ id: results.insertId });
+      const id = results.insertId;
+      res.status(200).json({ id: id, token: createToken(id) });
     }
   });
 }

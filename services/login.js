@@ -3,13 +3,12 @@ import nodemailer from 'nodemailer';
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
 import connection from '../database/database.js';
+import { createToken } from '../scripts/createToken.js';
 
 dotenv.config();
 
-const secretKey = process.env.SECRET_KEY;
 const secretKeyReset = process.env.SECRET_KEY_RESET;
 const tokenExpirationTimeResetPassword = "10m";
-const tokenExpirationTime = "4h";
 const urlFront = process.env.URL_FRONT;
 const fromEmail = process.env.EMAIL;
 
@@ -128,10 +127,7 @@ export const login = async (req, res) => {
         return res.status(401).json({ error: "Mot de passe incorrect." });
       }
 
-      const token = jwt.sign({ id: id }, secretKey, {
-        expiresIn: tokenExpirationTime,
-      });
-      res.json({ token: token });
+      res.json({ token: createToken(id)});
     }
   );
 };
