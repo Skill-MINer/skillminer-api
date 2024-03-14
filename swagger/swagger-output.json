@@ -80,16 +80,10 @@
         }
       }
     },
-    "/reset-password/{token}": {
+    "/reset-password": {
       "post": {
         "description": "",
         "parameters": [
-          {
-            "name": "token",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
           {
             "name": "body",
             "in": "body",

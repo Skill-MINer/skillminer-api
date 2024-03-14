@@ -25,7 +25,7 @@ app.use(cors(corsOptions), bodyParser.json());
 
 app.post("/login", login.login);
 app.post("/reset-request", login.resetRequest);
-app.post("/reset-password/:token", login.resetPassword);
+app.post("/reset-password", login.resetPassword);
 
 app.get("/users", auth, user.findAll);
 app.get("/users/:id", auth, user.findById);
