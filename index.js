@@ -35,7 +35,7 @@ app.post("/users", user.add);
 app.get("/protected", auth, protectedService);
 
 app.post("/file/users", auth, uploadUser.single('file'), user.uploadPhoto);
-app.use('/file', express.static('public'));
+app.use('/file', auth, express.static('public'));
 app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerFile));
 
 app.use("/", (req, res) => {
