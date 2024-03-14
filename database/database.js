@@ -1,4 +1,4 @@
-import mysql from 'mysql';
+import mysql from 'mysql2';
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -6,7 +6,7 @@ dotenv.config();
 const connection = mysql.createConnection({
   host: process.env.BDD_HOST,
   user: process.env.BDD_USER,
-  password: "",
+  password: process.env.BDD_PASSWORD,
   database: process.env.BDD_NAME,
 });
 
@@ -19,3 +19,4 @@ connection.connect((err) => {
 });
 
 export default connection;
+ 
