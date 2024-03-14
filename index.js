@@ -27,9 +27,9 @@ app.post("/login", login.login);
 app.post("/reset-request", login.resetRequest);
 app.post("/reset-password/:token", login.resetPassword);
 
-app.get("/users", auth, user.getUsers);
-app.get("/users/:id", auth, user.getUser);
-app.post("/users", user.addUser);
+app.get("/users", auth, user.findAll);
+app.get("/users/:id", auth, user.findById);
+app.post("/users", user.add);
 
 app.get("/protected", auth, protectedService);
 

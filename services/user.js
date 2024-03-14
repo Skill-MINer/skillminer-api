@@ -1,7 +1,9 @@
 import connection from '../database/database.js';
 import bcrypt from 'bcrypt';
+import { verifyEmail, verifyPassword } from '../scripts/verification.js';
 
-export const getUsers = (req, res) => {
+
+export const findAll = (req, res) => {
   req.query.limit = parseInt(req.query.limit);
   req.query.offset = parseInt(req.query.offset);
   const limit = req.query.limit < 50 && req.query.limit > 0 ? req.query.limit : 10;
@@ -22,7 +24,7 @@ export const getUsers = (req, res) => {
   });
 };
 
-export const getUser = (req, res) => {
+export const findById = (req, res) => {
   const id = req.params.id;
   if (isNaN(id)) {
     return res.status(400).json({ error: "Mauvais format de l'identifiant" });
@@ -42,10 +44,13 @@ export const getUser = (req, res) => {
   });
 };
 
-export const addUser = async (req, res) => {
+export const add = async (req, res) => {
   const { nom, prenom, email, password } = req.body;
   if (!nom || !prenom || !email || !password) {
     return res.status(400).json({ error: "Body invalide" });
+  }
+  if (!verifyEmail(email) || !verifyPassword(password)) {
+    return res.status(400).json({ error: "Email invalide ou mot de passe invalide" });
   }
 
   const hashPassword = await bcrypt.hash(password, 10);
