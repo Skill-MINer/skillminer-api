@@ -2,12 +2,12 @@
   "name": "@skillminer/api",
   "version": "1.0.0",
   "description": "SkillMINer API express and MySQL",
-  "main": "index.mjs",
+  "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node ./swagger/swagger.mjs && nodemon --experimental-modules index.mjs ",
-    "prod": "node ./swagger/swagger.mjs && node index.mjs production",
-    "swagger": "node ./swagger.mjs"
+    "start": "node ./swagger/swagger.js && nodemon --experimental-modules index.js ",
+    "prod": "node ./swagger/swagger.js && node index.js production",
+    "swagger": "node ./swagger.js"
   },
   "keywords": [
     "API",
