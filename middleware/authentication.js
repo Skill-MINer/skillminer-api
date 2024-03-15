@@ -5,7 +5,7 @@ dotenv.config();
 
 const secretKey = process.env.SECRET_KEY;
 
-export const auth = (req, res, next) => {
+export const auth = async (req, res, next) => {
   const token = req.headers["authorization"];
 
   if (!token)
@@ -13,12 +13,13 @@ export const auth = (req, res, next) => {
       .status(401)
       .json({ error: "Accès non autorisé. Token manquant." });
 
-  jwt.verify(token, secretKey, (err, data) => {
-    if (err)
-      return res
-        .status(403)
-        .json({ error: "Accès non autorisé. Token invalide." });
+  try {
+    const data = await jwt.verify(token, secretKey);
     req.id = data.id;
     next();
-  });
+  } catch (err) {
+    return res
+      .status(403)
+      .json({ error: "Accès non autorisé. Token invalide." });
+  }
 };
