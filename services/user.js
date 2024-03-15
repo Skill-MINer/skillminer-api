@@ -71,6 +71,49 @@ export const add = async (req, res) => {
   });
 }
 
+export const update = (req, res) => {
+  const id = req.id;
+  const { nom, prenom, email } = req.body;
+  if (!nom && !prenom && (!email || !verifyEmail(email))) {
+    return res.status(400).json({ error: "Body invalide" });
+  }
+  const emailVerify = verifyEmail(email) ? email : null;  
+
+  connection.query(`
+  UPDATE user
+  SET 
+      nom = CASE WHEN ? <> nom AND ? IS NOT NULL 
+            THEN ? ELSE nom END,
+      prenom = CASE WHEN ? <> prenom AND ? IS NOT NULL 
+               THEN ? ELSE prenom END,
+      email = CASE WHEN ? <> email AND ? IS NOT NULL 
+              THEN ? ELSE email END
+  WHERE id = ?`, 
+  [ nom, nom, nom, prenom, prenom, prenom, emailVerify, emailVerify, emailVerify, id ], 
+  (err, results) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+    } else if (results.affectedRows === 0) {
+      res.status(404).json({ error: "Utilisateur non trouvé" });
+    } else {
+      res.status(200).json({ message: results.info });
+    }
+  });
+}
+
+export const deleteWithToken = (req, res) => {
+  const id = req.id;
+  connection.query('DELETE FROM user WHERE id = ?', [id], (err, results) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+    } else if (results.affectedRows === 0) {
+      res.status(404).json({ error: "Utilisateur non trouvé" });
+    } else {
+      res.status(200).json({ message: "Utilisateur supprimé" });
+    }
+  });
+}
+
 export const uploadPhoto = (req, res) => {
   fs.rename(req.file.path, `${req.file.destination}${req.id}.png`, (err) => {
     if (err) {
