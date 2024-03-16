@@ -1,3 +1,3 @@
 export const protectedService = (req, res) => {
-  res.json({ message: "Ressource protégée accessible", id: req.user.id });
+  res.json({ message: "Ressource protégée accessible", id: req.id });
 };

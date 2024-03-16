@@ -31,6 +31,8 @@ app.post("/reset-password", login.resetPassword);
 app.get("/users", auth, user.findAll);
 app.get("/users/:id", auth, user.findById);
 app.post("/users", user.add);
+app.patch("/users", auth, user.update);
+app.delete("/users", auth, user.deleteWithToken);
 
 app.get("/protected", auth, protectedService);
 
