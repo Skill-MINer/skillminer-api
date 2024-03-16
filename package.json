@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "node ./swagger/swagger.js && nodemon --experimental-modules index.js ",
+    "start-watch": "node ./swagger/swagger.js && nodemon --experimental-modules index.js --inspect=0.0.0.0:9229",
     "prod": "node ./swagger/swagger.js && node index.js production",
     "swagger": "node ./swagger.js"
   },

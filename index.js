@@ -35,6 +35,10 @@ app.get("/protected", auth, protectedService);
 
 app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerFile));
 
+app.get("/healthz", function(req, res) {
+  res.send("I am happy and healthy\n");
+});
+
 app.use("/", (req, res) => {
   res.send("API de SkillMINER, documentation /swagger");
 });
