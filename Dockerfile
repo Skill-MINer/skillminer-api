@@ -1,24 +1,37 @@
-FROM node:20-alpine3.18
+FROM node:20-alpine3.18 AS development
 
-RUN addgroup app && adduser -S -G app app
-
-USER app
+ARG NODE_ENV=development
+ENV NODE_ENV $NODE_ENV
 
 WORKDIR /app
 
-COPY package*.json ./
+# default to port 3000 for node, and 9229 and 9230 (tests) for debug
+ARG PORT=3000
+ENV PORT $PORT
+EXPOSE $PORT 9229 9230
 
-# change ownership of the /app directory to the app user
-USER root
+COPY package.json /app/package.json
+COPY package-lock.json /app/package-lock.json
+RUN npm ci
 
-RUN chown -R app:app .
+# check every 30s to ensure this service returns HTTP 200
+HEALTHCHECK --interval=30s \
+  CMD node healthcheck.js
 
-USER app
+COPY . /app
 
-RUN npm install
+CMD npm start
 
-COPY . . 
+FROM development as dev-envs
+RUN <<EOF
+apt-get update
+apt-get install -y --no-install-recommends git
+EOF
 
-EXPOSE 3000 
-
-CMD npm run start
+RUN <<EOF
+useradd -s /bin/bash -m vscode
+groupadd docker
+usermod -aG docker vscode
+EOF
+# install Docker tools (cli, buildx, compose)
+COPY --from=gloursdocker/docker / /
