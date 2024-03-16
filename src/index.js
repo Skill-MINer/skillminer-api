@@ -11,7 +11,7 @@ import * as login from "./services/login.js";
 import { protectedService } from "./services/protected.js";
 import * as user from "./services/user.js";
 
-const swaggerFile = JSON.parse(fs.readFileSync("./swagger/swagger-output.json", "utf-8"));
+const swaggerFile = JSON.parse(fs.readFileSync("./src/swagger/swagger-output.json", "utf-8"));
 
 dotenv.config();
 
