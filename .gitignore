@@ -1,4 +1,4 @@
 node_modules
 .env
-./swagger/swagger.json
-./src/swagger/swagger.json
+./swagger/swagger-output.json
+./src/swagger/swagger-output.json
