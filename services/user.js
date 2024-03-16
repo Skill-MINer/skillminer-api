@@ -2,6 +2,7 @@ import connection from '../database/database.js';
 import bcrypt from 'bcrypt';
 import { verifyEmail, verifyPassword } from '../scripts/verification.js';
 import { createToken } from '../scripts/createToken.js';
+import fs from 'fs';
 
 
 export const findAll = (req, res) => {
@@ -66,6 +67,16 @@ export const add = async (req, res) => {
     } else {
       const id = results.insertId;
       res.status(200).json({ id: id, token: createToken(id) });
+    }
+  });
+}
+
+export const uploadPhoto = (req, res) => {
+  fs.rename(req.file.path, `${req.file.destination}${req.id}.png`, (err) => {
+    if (err) {
+      return res.status(500).send("Erreur lors de l'enregistrement du fichier");
+    } else {
+      return res.status(200).json({ message: 'Photo enregistré' });
     }
   });
 }
