@@ -110,7 +110,7 @@ export const login = async (req, res) => {
   }
 
   connection.query(
-    "SELECT id, password FROM user WHERE email = ?",
+    "SELECT id, password, nom, prenom, email FROM user WHERE email = ?",
     [email],
     async (err, results) => {
       if (err) {
@@ -121,13 +121,13 @@ export const login = async (req, res) => {
       }
 
       const hashPassword = results[0].password;
-      const id = results[0].id;
+      const {id, nom, prenom, email} = results[0];
       const result = await bcrypt.compare(password, hashPassword);
       if (!result) {
         return res.status(401).json({ error: "Mot de passe incorrect." });
       }
 
-      res.json({ token: createToken(id)});
+      res.json({ token: createToken(id), id, nom, prenom, email });
     }
   );
 };
