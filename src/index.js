@@ -11,7 +11,7 @@ import * as login from "./services/login.js";
 import { protectedService } from "./services/protected.js";
 import * as user from "./services/user.js";
 
-const swaggerFile = JSON.parse(fs.readFileSync("./swagger/swagger-output.json", "utf-8"));
+const swaggerFile = JSON.parse(fs.readFileSync("./src/swagger/swagger-output.json", "utf-8"));
 
 dotenv.config();
 
@@ -39,6 +39,10 @@ app.get("/protected", auth, protectedService);
 app.post("/file/users", auth, uploadUser.single('file'), user.uploadPhoto);
 app.use('/file', auth, express.static('public'));
 app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerFile));
+
+app.get("/healthz", function(req, res) {
+  res.send("I am happy and healthy\n");
+});
 
 app.use("/", (req, res) => {
   res.send("API de SkillMINER, documentation /swagger");
