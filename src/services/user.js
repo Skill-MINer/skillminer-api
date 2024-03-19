@@ -82,14 +82,14 @@ export const update = (req, res) => {
   connection.query(`
   UPDATE user
   SET 
-      nom = CASE WHEN ? <> nom AND ? IS NOT NULL 
-            THEN ? ELSE nom END,
-      prenom = CASE WHEN ? <> prenom AND ? IS NOT NULL 
-               THEN ? ELSE prenom END,
-      email = CASE WHEN ? <> email AND ? IS NOT NULL 
-              THEN ? ELSE email END
-  WHERE id = ?`, 
-  [ nom, nom, nom, prenom, prenom, prenom, emailVerify, emailVerify, emailVerify, id ], 
+      nom = CASE WHEN :nom <> nom AND :nom IS NOT NULL 
+            THEN :nom ELSE nom END,
+      prenom = CASE WHEN :prenom <> prenom AND :prenom IS NOT NULL 
+               THEN :prenom ELSE prenom END,
+      email = CASE WHEN :email <> email AND :email IS NOT NULL 
+              THEN :email ELSE email END
+  WHERE id = :id`, 
+  { id, nom, prenom, email: emailVerify}, 
   (err, results) => {
     if (err) {
       res.status(500).json({ error: err.message });

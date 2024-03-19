@@ -10,6 +10,8 @@ const connection = mysql.createConnection({
   database: process.env.BDD_NAME,
 });
 
+connection.config.namedPlaceholders = true;
+
 connection.connect((err) => {
   if (err) {
     console.error("Erreur de connexion à la base de données :", err);
