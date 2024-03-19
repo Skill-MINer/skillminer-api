@@ -66,7 +66,7 @@ export const add = async (req, res) => {
       res.status(500).json({ error: err.message });
     } else {
       const id = results.insertId;
-      res.status(200).json({ id: id, token: createToken(id) });
+      res.status(201).json({ id: id, token: createToken(id) });
     }
   });
 }
