@@ -131,3 +131,20 @@ export const login = async (req, res) => {
     }
   );
 };
+
+export const tokenInfo = async (req, res) => {
+  const id = req.id;
+  connection.query(
+    "SELECT id, nom, prenom, email, date_inscription FROM user WHERE id = ?",
+    [id],
+    (err, results) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      if (results.length === 0) {
+        return res.status(404).json({ error: "Utilisateur non trouvé." });
+      }
+      res.json(results[0]);
+    }
+  );
+};
