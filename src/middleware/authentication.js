@@ -6,6 +6,9 @@ dotenv.config();
 const secretKey = process.env.SECRET_KEY;
 
 export const auth = async (req, res, next) => {
+  /* #swagger.security = [{
+          "apiKeyAuth": []
+  }] */
   const token = req.headers["authorization"];
 
   if (!token)

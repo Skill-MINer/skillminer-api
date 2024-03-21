@@ -9,6 +9,14 @@ const doc = {
     description: "API de SkillMINer",
   },
   host: `localhost:${process.env.PORT}`,
+  securityDefinitions: {
+    apiKeyAuth: {
+      type: "apiKey",
+      in: "header",
+      name: "authorization",
+      description: "Token utilisateur",
+    },
+  }
 };
 
 const outputFile = "./swagger-output.json";
