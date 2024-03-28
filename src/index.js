@@ -8,6 +8,7 @@ import multer from "multer";
 
 import { auth } from "./middleware/authentication.js";
 import { limitOffset } from "./middleware/limitOffset.js";
+import * as tag from "./services/tag.js";
 import * as formation from "./services/formation.js";
 import * as login from "./services/login.js";
 import * as user from "./services/user.js";
@@ -48,6 +49,8 @@ app.get("/formations", limitOffset, formation.findAll);
 app.post("/formations", auth, formation.add);
 app.patch("/formations/:id", auth, formation.update);
 app.delete("/formations/:id", auth, formation.deleteFormation);
+
+app.get("/tags", limitOffset, tag.findAll);
 
 app.post("/file/users", auth, uploadUser.single("file"), user.uploadPhoto);
 app.use("/file", auth, express.static("public"));
