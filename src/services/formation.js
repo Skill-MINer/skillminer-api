@@ -4,7 +4,6 @@ export const findAll = (req, res) => {
   const limit = req.limit;
   const offset = req.offset;
   const titre = req.query.titre ? req.query.titre : null;
-  console.log(titre);
 
   connection.query(
     `SELECT id, titre, date_creation 
@@ -16,7 +15,7 @@ export const findAll = (req, res) => {
       END
     LIMIT :limit  
     OFFSET :offset`,
-    { titre, limit, offset},
+    { titre, limit, offset },
     (err, results) => {
       if (err) {
         res.status(500).json({ error: err.message });
