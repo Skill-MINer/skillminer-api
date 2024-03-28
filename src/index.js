@@ -45,7 +45,7 @@ app.delete("/users", auth, user.deleteWithToken);
 
 app.get("/formations/:id", formation.findById);
 app.get("/formations", limitOffset, formation.findAll);
-app.post("/formations/:id", auth, formation.add);
+app.post("/formations", auth, formation.add);
 app.patch("/formations/:id", auth, formation.update);
 app.delete("/formations/:id", auth, formation.deleteFormation);
 

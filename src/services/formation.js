@@ -37,9 +37,13 @@ export const findById = (req, res) => {
     `
   SELECT 
     formation.id, titre, date_creation,
-    JSON_OBJECT('id', user.id, 'nom', user.nom, 'prenom', user.prenom) as user
+    JSON_OBJECT('id', user.id, 'nom', user.nom, 'prenom', user.prenom) as user,
+    IF(COUNT(tag.id) > 0, 
+      JSON_ARRAYAGG(JSON_OBJECT('id', tag.id, 'nom', tag.nom)), JSON_ARRAY()) as tag 
   FROM formation
   INNER JOIN user ON formation.id_user = user.id
+  LEFT JOIN posseder ON formation.id = posseder.id
+  LEFT JOIN tag ON posseder.id_tag = tag.id
   WHERE formation.id = ?
   `,
     [id],
@@ -56,8 +60,9 @@ export const findById = (req, res) => {
 };
 
 export const add = async (req, res) => {
-  const { titre, id_user } = req.body;
-  if (!titre || !id_user) {
+  const { titre } = req.body;
+  const id_user = req.id;
+  if (!titre) {
     return res.status(400).json({ error: "Body invalide" });
   }
   const dateCreation = new Date();
