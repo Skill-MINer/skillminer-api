@@ -78,24 +78,24 @@ export const add = async (req, res) => {
 };
 
 export const update = (req, res) => {
-  const id = req.params.id;
+  const id = parseInt(req.params.id);
+  const id_user = req.id;
   const { titre } = req.body;
-  if (!titre) {
+  if (!titre || isNaN(id)) {
     return res.status(400).json({ error: "Body invalide" });
   }
   connection.query(
     `
   UPDATE formation
   SET 
-      titre = CASE WHEN :titre IS NOT NULL 
-            THEN :titre ELSE titre END,
-  WHERE id = :id`,
-    { id, titre },
+      titre = CASE WHEN :titre IS NOT NULL THEN :titre ELSE titre END
+  WHERE id = :id AND id_user = :id_user`,
+    { id, titre, id_user},
     (err, results) => {
       if (err) {
         res.status(500).json({ error: err.message });
       } else if (results.affectedRows === 0) {
-        res.status(404).json({ error: "Formation non trouvée" });
+        res.status(401).json({ error: "Formation non trouvée ou utilisateur non autorisé" });
       } else {
         res.status(200).json({ message: results.info });
       }
@@ -104,15 +104,20 @@ export const update = (req, res) => {
 };
 
 export const deleteFormation = (req, res) => {
-  const id = req.params.id;
+  const id = parseInt(req.params.id);
+  const id_user = req.id;
+  if (isNaN(id)) {
+    return res.status(400).json({ error: "Id invalide" });
+  }
+
   connection.query(
-    "DELETE FROM formation WHERE id = ?",
-    [id],
+    "DELETE FROM formation WHERE id = ? AND id_user = ?",
+    [id, id_user],
     (err, results) => {
       if (err) {
         res.status(500).json({ error: err.message });
       } else if (results.affectedRows === 0) {
-        res.status(404).json({ error: "Formation non trouvée" });
+        res.status(401).json({ error: "Formation non trouvée ou utilisateur non autorisé" });
       } else {
         res.status(200).json({ message: "Formation supprimée" });
       }
