@@ -20,7 +20,7 @@ export const findAll = (req, res) => {
       if (err) {
         res.status(500).json({ error: err.message });
       } else if (results.length === 0) {
-        res.status(404).json({ error: "Formation(s) non trouvée" });
+        res.status(404).json({ error: "Formation(s) non trouvée(s)" });
       } else {
         res.status(200).json(results);
       }
@@ -38,7 +38,7 @@ export const findById = (req, res) => {
       if (err) {
         res.status(500).json({ error: err.message });
       } else if (results.length === 0) {
-        res.status(404).json({ error: "Formation non trouvée" });
+        res.status(404).json({ error: "Formation(s) non trouvée(s)" });
       } else {
         res.status(200).json(results[0]);
       }
@@ -90,6 +90,23 @@ export const update = (req, res) => {
         res.status(404).json({ error: "Formation non trouvée" });
       } else {
         res.status(200).json({ message: results.info });
+      }
+    }
+  );
+};
+
+export const deleteWithToken = (req, res) => {
+  const id = req.params.id;
+  connection.query(
+    "DELETE FROM formations WHERE id = ?",
+    [id],
+    (err, results) => {
+      if (err) {
+        res.status(500).json({ error: err.message });
+      } else if (results.affectedRows === 0) {
+        res.status(404).json({ error: "Formation non trouvée" });
+      } else {
+        res.status(200).json({ message: "Formation supprimée" });
       }
     }
   );
