@@ -29,10 +29,16 @@ export const findAll = (req, res) => {
 };
 
 export const findById = (req, res) => {
-  connection.query(
-    `
-  SELECT id, titre, date_creation,id_user 
-  FROM user WHERE id = ?`,
+  const id = req.params.id;
+
+  connection.query(`
+  SELECT 
+    formation.id, titre, date_creation,
+    JSON_OBJECT('id', user.id, 'nom', user.nom, 'prenom', user.prenom) as user
+  FROM formation
+  INNER JOIN user ON formation.id_user = user.id
+  WHERE formation.id = ?
+  `,
     [id],
     (err, results) => {
       if (err) {
