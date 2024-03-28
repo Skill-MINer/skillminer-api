@@ -46,6 +46,7 @@ app.get("/formations/:id", formation.findById);
 app.get("/formations", formation.findAll);
 app.post("/formations", auth, formation.add);
 app.patch("/formations", auth, formation.update);
+app.delete("/formations", auth, formation.deleteWithToken);
 
 app.post("/file/users", auth, uploadUser.single("file"), user.uploadPhoto);
 app.use("/file", auth, express.static("public"));
