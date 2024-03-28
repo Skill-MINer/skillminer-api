@@ -3,7 +3,11 @@ import bcrypt from 'bcrypt';
 import { verifyEmail, verifyPassword } from '../scripts/verification.js';
 import { createToken } from '../scripts/createToken.js';
 import fs from 'fs';
+import dotenv from "dotenv";
 
+dotenv.config();
+const tokenExpirationTime = process.env.TOKEN_EXPIRATION_TIME;
+const expiresIn = parseInt(tokenExpirationTime)*60*60;
 
 export const findAll = (req, res) => {
   req.query.limit = parseInt(req.query.limit);
@@ -66,7 +70,7 @@ export const add = async (req, res) => {
       res.status(500).json({ error: err.message });
     } else {
       const id = results.insertId;
-      res.status(201).json({ id: id, token: createToken(id) });
+      res.status(201).json({ id: id, token: createToken(id), expiresIn });
     }
   });
 }

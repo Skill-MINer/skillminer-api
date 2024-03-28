@@ -11,6 +11,8 @@ const secretKeyReset = process.env.SECRET_KEY_RESET;
 const tokenExpirationTimeResetPassword = "10m";
 const urlFront = process.env.URL_FRONT;
 const fromEmail = process.env.EMAIL;
+const tokenExpirationTime = process.env.TOKEN_EXPIRATION_TIME;
+const expiresIn = parseInt(tokenExpirationTime)*60*60;
 
 const transporter = nodemailer.createTransport({
   service: "Gmail",
@@ -127,7 +129,7 @@ export const login = async (req, res) => {
         return res.status(401).json({ error: "Mot de passe incorrect." });
       }
 
-      res.json({ token: createToken(id), id, nom, prenom, email });
+      res.json({ token: createToken(id), expiresIn, id, nom, prenom, email });
     }
   );
 };
