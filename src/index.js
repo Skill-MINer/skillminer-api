@@ -4,9 +4,10 @@ import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import swaggerUi from "swagger-ui-express";
 import fs from "fs";
-import { auth } from "./middleware/authentication.js";
 import multer from "multer";
 
+import { auth } from "./middleware/authentication.js";
+import { limitOffset } from "./middleware/limitOffset.js";
 import * as formation from "./services/formation.js";
 import * as login from "./services/login.js";
 import * as user from "./services/user.js";
@@ -36,14 +37,14 @@ app.post("/reset-request", login.resetRequest);
 app.post("/reset-password", login.resetPassword);
 app.get("/token-info", auth, login.tokenInfo);
 
-app.get("/users", auth, user.findAll);
+app.get("/users", auth, limitOffset, user.findAll);
 app.get("/users/:id", auth, user.findById);
 app.post("/users", user.add);
 app.patch("/users", auth, user.update);
 app.delete("/users", auth, user.deleteWithToken);
 
 app.get("/formations/:id", formation.findById);
-app.get("/formations", formation.findAll);
+app.get("/formations", limitOffset, formation.findAll);
 app.post("/formations/:id", auth, formation.add);
 app.patch("/formations/:id", auth, formation.update);
 app.delete("/formations", auth, formation.deleteWithToken);

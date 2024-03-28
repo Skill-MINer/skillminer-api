@@ -1,21 +1,22 @@
 import connection from "../database/database.js";
 
 export const findAll = (req, res) => {
-  req.query.limit = parseInt(req.query.limit);
-  req.query.offset = parseInt(req.query.offset);
-  const limit =
-    req.query.limit < 50 && req.query.limit > 0 ? req.query.limit : 10;
-  const offset = req.query.offset > 0 ? req.query.offset : 0;
-
-  if (isNaN(limit) || isNaN(offset)) {
-    return res
-      .status(400)
-      .json({ error: "Mauvais format de la limite ou du décalage" });
-  }
+  const limit = req.limit;
+  const offset = req.offset;
+  const titre = req.query.titre ? req.query.titre : null;
+  console.log(titre);
 
   connection.query(
-    "SELECT id, titre, date_creation FROM user LIMIT ? OFFSET ? ",
-    [limit, offset],
+    `SELECT id, titre, date_creation 
+    FROM formation 
+    WHERE 
+      CASE WHEN :titre IS NOT NULL  
+        THEN MATCH(titre) AGAINST(? IN NATURAL LANGUAGE MODE) 
+        ELSE 1 
+      END
+    LIMIT :limit  
+    OFFSET :offset`,
+    { titre, limit, offset},
     (err, results) => {
       if (err) {
         res.status(500).json({ error: err.message });

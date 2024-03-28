@@ -10,15 +10,8 @@ const tokenExpirationTime = process.env.TOKEN_EXPIRATION_TIME;
 const expiresIn = parseInt(tokenExpirationTime)*60*60;
 
 export const findAll = (req, res) => {
-  req.query.limit = parseInt(req.query.limit);
-  req.query.offset = parseInt(req.query.offset);
-  const limit = req.query.limit < 50 && req.query.limit > 0 ? req.query.limit : 10;
-  const offset = req.query.offset > 0 ? req.query.offset : 0;
-
-  if (isNaN(limit) || isNaN(offset)) {
-    return res.status(400).json({ error: "Mauvais format de la limite ou du décalage" });
-  }
-
+  const limit = req.limit;
+  const offset = req.offset;
   connection.query('SELECT id, nom, prenom, email, date_inscription FROM user LIMIT ? OFFSET ?', [limit, offset], (err, results) => {
     if (err) {
       res.status(500).json({ error: err.message });
