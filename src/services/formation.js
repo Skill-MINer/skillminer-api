@@ -31,7 +31,8 @@ export const findAll = (req, res) => {
 export const findById = (req, res) => {
   const id = req.params.id;
 
-  connection.query(`
+  connection.query(
+    `
   SELECT 
     formation.id, titre, date_creation,
     JSON_OBJECT('id', user.id, 'nom', user.nom, 'prenom', user.prenom) as user
@@ -61,7 +62,7 @@ export const add = async (req, res) => {
 
   connection.query(
     `
-  INSERT INTO user (titre, date_creation, id_user) 
+  INSERT INTO formation (titre, date_creation, id_user) 
   VALUES (?, ?, ?)`,
     [titre, dateCreation, id_user],
     (err, results) => {
@@ -69,7 +70,7 @@ export const add = async (req, res) => {
         res.status(500).json({ error: err.message });
       } else {
         const id = results.insertId;
-        res.status(201).json({ id: id, token: createToken(id) });
+        res.status(201).json({ id: id });
       }
     }
   );
@@ -101,10 +102,10 @@ export const update = (req, res) => {
   );
 };
 
-export const deleteWithToken = (req, res) => {
+export const deleteFormation = (req, res) => {
   const id = req.params.id;
   connection.query(
-    "DELETE FROM formations WHERE id = ?",
+    "DELETE FROM formation WHERE id = ?",
     [id],
     (err, results) => {
       if (err) {
