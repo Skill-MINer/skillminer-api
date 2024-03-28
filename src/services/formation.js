@@ -60,7 +60,7 @@ export const findById = (req, res) => {
 };
 
 export const add = async (req, res) => {
-  const { titre } = req.body;
+  const { titre, tags } = req.body;
   const id_user = req.id;
   if (!titre) {
     return res.status(400).json({ error: "Body invalide" });
@@ -76,8 +76,25 @@ export const add = async (req, res) => {
       if (err) {
         res.status(500).json({ error: err.message });
       } else {
-        const id = results.insertId;
-        res.status(201).json({ id: id });
+        const formationId = results.insertId;
+        if (tags && tags.length > 0) {
+          const tagValues = tags.map(tagId => [formationId, tagId]);
+          connection.query(
+            `
+            INSERT INTO posseder (id, id_tag) 
+            VALUES ?`,
+            [tagValues],
+            (err, results) => {
+              if (err) {
+                res.status(500).json({ error: err.message, error_tag: "Erreur lors de l'ajout des tags" });
+              } else {
+                res.status(201).json({ id: formationId });
+              }
+            }
+          );
+        } else {
+          res.status(201).json({ id: formationId });
+        }
       }
     }
   );
