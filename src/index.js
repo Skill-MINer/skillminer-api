@@ -38,7 +38,7 @@ app.patch("/users", auth, user.update);
 app.delete("/users", auth, user.deleteWithToken);
 
 app.post("/file/users", auth, uploadUser.single('file'), user.uploadPhoto);
-app.use('/file', auth, express.static('public'));
+app.use('/file', express.static('public'));
 
 app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerFile));
 app.use((req, res) => { res.status(404).send({ error: "Page non trouvée" }); });
