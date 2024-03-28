@@ -4,11 +4,12 @@ export const findAll = (req, res) => {
   const limit = req.limit;
   const offset = req.offset;
   const titre = req.query.titre ? req.query.titre : null;
-  console.log(titre);
 
   connection.query(
-    `SELECT id, titre, date_creation 
-    FROM formation 
+    `SELECT formation.id, titre, date_creation,
+    JSON_OBJECT('id', user.id, 'nom', user.nom, 'prenom', user.prenom) as user
+    FROM formation
+    INNER JOIN user ON formation.id_user = user.id
     WHERE 
       CASE WHEN :titre IS NOT NULL  
         THEN MATCH(titre) AGAINST(? IN NATURAL LANGUAGE MODE) 
@@ -16,7 +17,7 @@ export const findAll = (req, res) => {
       END
     LIMIT :limit  
     OFFSET :offset`,
-    { titre, limit, offset},
+    { titre, limit, offset },
     (err, results) => {
       if (err) {
         res.status(500).json({ error: err.message });
