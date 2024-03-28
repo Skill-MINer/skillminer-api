@@ -17,3 +17,23 @@ export const findAll = (req, res) => {
     }
   );
 };
+
+export const add = (req, res) => {
+  const { nom } = req.body;
+  if (!nom) {
+    return res.status(400).json({ error: "Body invalide" });
+  }
+
+  connection.query(
+    "INSERT INTO tag (nom) VALUES (?)",
+    [nom],
+    (err, results) => {
+      if (err) {
+        res.status(500).json({ error: err.message });
+      } else {
+        const id = results.insertId;
+        res.status(201).json({ id: id, nom: nom });
+      }
+    }
+  );
+};

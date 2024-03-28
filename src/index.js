@@ -49,8 +49,11 @@ app.get("/formations", limitOffset, formation.findAll);
 app.post("/formations", auth, formation.add);
 app.patch("/formations/:id", auth, formation.update);
 app.delete("/formations/:id", auth, formation.deleteFormation);
+app.post("/formations/:id/tags", auth, formation.addTags);
+app.delete("/formations/:id/tags", auth, formation.removeTag);
 
 app.get("/tags", limitOffset, tag.findAll);
+app.post("/tags", auth, tag.add);
 
 app.post("/file/users", auth, uploadUser.single("file"), user.uploadPhoto);
 app.use("/file", auth, express.static("public"));
