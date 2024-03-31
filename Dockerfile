@@ -5,14 +5,16 @@ ENV NODE_ENV $NODE_ENV
 
 WORKDIR /app
 
+RUN npm install -g pnpm
+
 # default to port 3000 for node, and 9229 and 9230 (tests) for debug
 ARG PORT=3000
 ENV PORT $PORT
 EXPOSE $PORT 9229 9230
 
 COPY package.json /app/package.json
-COPY package-lock.json /app/package-lock.json
-RUN npm ci
+COPY pnpm-lock.yaml /app/pnpm-lock.yaml
+RUN pnpm i
 
 # check every 30s to ensure this service returns HTTP 200
 HEALTHCHECK --interval=30s \
@@ -20,7 +22,7 @@ HEALTHCHECK --interval=30s \
 
 COPY . /app
 
-CMD npm start
+CMD pnpm start
 
 FROM development as dev-envs
 RUN <<EOF
