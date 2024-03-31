@@ -91,7 +91,7 @@ export const update = (req, res) => {
     if (err) {
       res.status(500).json({ error: err.message });
     } else if (results.affectedRows === 0) {
-      res.status(404).json({ error: "Utilisateur non trouvé" });
+      res.status(404).json({ error: "Utilisateur non trouvé ou non autorisé" });
     } else {
       res.status(200).json({ message: results.info });
     }
