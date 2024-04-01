@@ -17,6 +17,7 @@ const swaggerFile = JSON.parse(
   fs.readFileSync("./src/swagger/swagger-output.json", "utf-8")
 );
 const URL_BACK = `${process.env.URL_BACK}:${process.env.PORT}`;
+const PORT = process.env.PORT;
 
 dotenv.config();
 
@@ -60,13 +61,10 @@ app.post("/file/users", auth, uploadUser.single("file"), user.uploadPhoto);
 app.use("/file", express.static("public"));
 
 app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerFile));
-app.use((req, res) => {
-  res.status(404).send({ error: "Page non trouvée" });
-});
+app.use((req, res) => res.status(404).send({ error: "Page non trouvée" }));
 
-const port = process.env.PORT;
-app.listen(port, () => {
+app.listen(PORT, () => {
   console.log(
-    `Serveur en cours d'exécution sur le port ${port}, documentation ${URL_BACK}/swagger`
+    `Serveur en cours d'exécution sur le port ${PORT}, documentation ${URL_BACK}/swagger`
   );
 });

@@ -150,14 +150,3 @@ export const uploadPhoto = (req, res) => {
     }
   });
 }
-
-export const getPhoto = (req, res) => {
-  const id = req.params.id;
-  fs.readFile(`public/users/${id}.png`, (err, data) => {
-    if (err) {
-      return res.status(404).json({ error: "Photo non trouvée" });
-    } else {
-      res.status(200).send(data);
-    }
-  });
-}
