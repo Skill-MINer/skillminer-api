@@ -42,7 +42,7 @@ app.get("/token-info", auth, login.tokenInfo);
 app.get("/users", auth, limitOffset, user.findAll);
 app.get("/users/:id", auth, user.findById);
 app.post("/users", user.add);
-app.post("/users/password", auth, user.updatePassword);
+app.put("/users/password", auth, user.updatePassword);
 app.patch("/users", auth, user.update);
 app.delete("/users", auth, user.deleteWithToken);
 
