@@ -1,4 +1,6 @@
 import connection from "../database/database.js";
+import fs from 'fs';
+import { deletePhoto } from "../scripts/file.js";
 
 export const findAll = (req, res) => {
   const limit = req.limit;
@@ -48,6 +50,7 @@ export const findById = (req, res) => {
   LEFT JOIN posseder ON formation.id = posseder.id
   LEFT JOIN tag ON posseder.id_tag = tag.id
   WHERE formation.id = ?
+  GROUP BY formation.id
   `,
     [id],
     (err, results) => {
@@ -121,7 +124,7 @@ export const update = (req, res) => {
       if (err) {
         res.status(500).json({ error: err.message });
       } else if (results.affectedRows === 0) {
-        res.status(401).json({ error: "Formation non trouvée ou utilisateur non autorisé" });
+        res.status(401).json({ error: "Utilisateur non autorisé ou formation non trouvée" });
       } else {
         res.status(200).json({ message: results.info });
       }
@@ -143,7 +146,7 @@ export const deleteFormation = (req, res) => {
       if (err) {
         res.status(500).json({ error: err.message });
       } else if (results.affectedRows === 0) {
-        res.status(401).json({ error: "Formation non trouvée ou utilisateur non autorisé" });
+        res.status(401).json({ error: "Utilisateur non autorisé ou formation non trouvée" });
       } else {
         res.status(200).json({ message: "Formation supprimée" });
       }
@@ -171,7 +174,7 @@ export const addTags = (req, res) => {
       if (err) {
         res.status(500).json({ error: err.message });
       } else if (results.affectedRows === 0) {
-        res.status(401).json({ error: "Formation non trouvée ou utilisateur non autorisé ou tag déjà possédé ou tag non existant" });
+        res.status(401).json({ error: "utilisateur non autorisé ou formation non trouvée ou tag déjà possédé ou tag non existant" });
       } else {
         res.status(201).json({ message: "Tag ajouté" });
       }
@@ -205,7 +208,7 @@ export const removeTag = (req, res) => {
       if (err) {
         res.status(500).json({ error: err.message });
       } else if (results.affectedRows === 0) {
-        res.status(401).json({ error: "Formation non trouvée, utilisateur non autorisé, ou le tag n'existe pas dans cette formation" });
+        res.status(401).json({ error: "Utilisateur non autorisé ou formation non trouvée ou le tag n'existe pas dans cette formation" });
       } else {
         res.status(200).json({ message: "Tag supprimé de la formation" });
       }
@@ -213,3 +216,31 @@ export const removeTag = (req, res) => {
   );
 };
 
+export const uploadPhoto = (req, res) => {
+  const id = req.params.id;
+  const id_user = req.id;
+  if (isNaN(id)) {
+    return res.status(400).json({ error: "ID invalide" });
+  }
+  connection.query(
+    "SELECT id_user FROM formation WHERE id = ? AND id_user = ?",
+    [id, id_user],
+    (err, results) => {
+      if (err) {    
+        deletePhoto(req.file.path);    
+        return res.status(500).json({ error: err.message });
+      } else if (results.length === 0) {
+        deletePhoto(req.file.path);
+        return res.status(401).json({ error: "Utilisateur non autorisé ou formation non trouvée" });
+      } else {
+        fs.rename(req.file.path, `${req.file.destination}${id}.png`, (err) => {
+          if (err) {
+            return res.status(500).send("Erreur lors de l'enregistrement du fichier");
+          } else {
+            return res.status(200).json({ message: "Photo enregistré" });
+          }
+        });
+      }
+    }
+  );
+};
