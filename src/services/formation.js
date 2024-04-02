@@ -14,27 +14,35 @@ export const findAll = (req, res) => {
     }
     tags = tags.map(Number);
   }
-  const isTags = tags && tags.length > 0;
 
-  connection.query(
-    `SELECT DISTINCT formation.id, titre, date_creation,
+  const nbTags = tags ? tags.length : 0;
+  const tagQuery = `
+  formation.id IN (
+    SELECT posseder.id
+    FROM posseder
+    WHERE id_tag IN (:tags)
+    GROUP BY posseder.id
+    HAVING COUNT(DISTINCT id_tag) = :nbTags
+  ) AND`;
+
+  connection.query(`
+  SELECT DISTINCT formation.id, titre, date_creation,
     JSON_OBJECT('id', user.id, 'nom', user.nom, 'prenom', user.prenom) as user,
     IF(COUNT(tag.id) > 0, 
       JSON_ARRAYAGG(JSON_OBJECT('id', tag.id, 'nom', tag.nom)), JSON_ARRAY()) as tag
-    FROM formation
-    INNER JOIN user ON formation.id_user = user.id
-    LEFT JOIN posseder ON formation.id = posseder.id
-    LEFT JOIN tag ON posseder.id_tag = tag.id
-    WHERE 
-      (:titre IS NULL OR MATCH(titre) AGAINST(:titre IN BOOLEAN MODE))
-      AND (:isTags IS NULL OR tag.id IN (:tags))
-    GROUP BY formation.id
-    ORDER BY 
-      SUM(tag.id IN (:tags)) DESC,
-      MATCH(titre) AGAINST(:titre IN BOOLEAN MODE) DESC
-    LIMIT :limit  
-    OFFSET :offset`,
-    { titre, limit, offset, tags, isTags },
+  FROM formation
+  INNER JOIN user ON formation.id_user = user.id
+  LEFT JOIN posseder ON formation.id = posseder.id
+  LEFT JOIN tag ON posseder.id_tag = tag.id
+  WHERE 
+    ${nbTags > 0 ? tagQuery : ""} 
+    (:titre IS NULL OR MATCH(titre) AGAINST(:titre IN BOOLEAN MODE))
+  GROUP BY formation.id 
+  ORDER BY MATCH(titre) AGAINST(:titre IN BOOLEAN MODE) DESC 
+  LIMIT :limit 
+  OFFSET :offset 
+  `,
+    { titre, limit, offset, tags, nbTags },
     (err, results) => {
       if (err) {
         res.status(500).json({ error: err.message });
