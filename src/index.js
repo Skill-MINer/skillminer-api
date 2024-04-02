@@ -28,6 +28,7 @@ const corsOptions = {
   credentials: true,
 };
 const uploadUser = multer({ dest: "public/users/" });
+const uploadFormation = multer({ dest: "public/formations/" });
 
 app.use(cors(corsOptions), bodyParser.json());
 app.get("/", (req, res) => {
@@ -58,6 +59,7 @@ app.get("/tags", limitOffset, tag.findAll);
 app.post("/tags", auth, tag.add);
 
 app.post("/file/users", auth, uploadUser.single("file"), user.uploadPhoto);
+app.post("/file/formations/:id", auth, uploadFormation.single("file"), formation.uploadPhoto);
 app.use("/file", express.static("public"));
 
 app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerFile));
