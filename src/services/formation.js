@@ -15,11 +15,9 @@ export const findAll = (req, res) => {
     LEFT JOIN posseder ON formation.id = posseder.id
     LEFT JOIN tag ON posseder.id_tag = tag.id
     WHERE 
-      CASE WHEN :titre IS NOT NULL  
-        THEN MATCH(titre) AGAINST(:titre IN NATURAL LANGUAGE MODE) 
-        ELSE 1 
-      END
+      (:titre IS NULL OR MATCH(titre) AGAINST(:titre IN BOOLEAN MODE))
     GROUP BY formation.id
+    ORDER BY MATCH(titre) AGAINST(:titre IN BOOLEAN MODE) DESC
     LIMIT :limit  
     OFFSET :offset`,
     { titre, limit, offset },
