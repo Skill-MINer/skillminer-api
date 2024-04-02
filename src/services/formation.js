@@ -16,7 +16,7 @@ export const findAll = (req, res) => {
     LEFT JOIN tag ON posseder.id_tag = tag.id
     WHERE 
       CASE WHEN :titre IS NOT NULL  
-        THEN MATCH(titre) AGAINST(? IN NATURAL LANGUAGE MODE) 
+        THEN MATCH(titre) AGAINST(:titre IN NATURAL LANGUAGE MODE) 
         ELSE 1 
       END
     GROUP BY formation.id
