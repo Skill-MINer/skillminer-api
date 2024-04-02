@@ -6,9 +6,18 @@ export const findAll = (req, res) => {
   const limit = req.limit;
   const offset = req.offset;
   const titre = req.query.titre || null;
+  let tags = req.query.tags ? req.query.tags.split(',') : null;
+  if (tags) {
+    for (const tag of tags) {
+      if (isNaN(tag))
+        return res.status(400).json({ error: "ID de tag invalide" });
+    }
+    tags = tags.map(Number);
+  }
+  const isTags = tags && tags.length > 0;
 
   connection.query(
-    `SELECT formation.id, titre, date_creation,
+    `SELECT DISTINCT formation.id, titre, date_creation,
     JSON_OBJECT('id', user.id, 'nom', user.nom, 'prenom', user.prenom) as user,
     IF(COUNT(tag.id) > 0, 
       JSON_ARRAYAGG(JSON_OBJECT('id', tag.id, 'nom', tag.nom)), JSON_ARRAY()) as tag
@@ -18,11 +27,14 @@ export const findAll = (req, res) => {
     LEFT JOIN tag ON posseder.id_tag = tag.id
     WHERE 
       (:titre IS NULL OR MATCH(titre) AGAINST(:titre IN BOOLEAN MODE))
+      AND (:isTags IS NULL OR tag.id IN (:tags))
     GROUP BY formation.id
-    ORDER BY MATCH(titre) AGAINST(:titre IN BOOLEAN MODE) DESC
+    ORDER BY 
+      SUM(tag.id IN (:tags)) DESC,
+      MATCH(titre) AGAINST(:titre IN BOOLEAN MODE) DESC
     LIMIT :limit  
     OFFSET :offset`,
-    { titre, limit, offset },
+    { titre, limit, offset, tags, isTags },
     (err, results) => {
       if (err) {
         res.status(500).json({ error: err.message });
