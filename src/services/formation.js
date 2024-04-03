@@ -6,23 +6,43 @@ export const findAll = (req, res) => {
   const limit = req.limit;
   const offset = req.offset;
   const titre = req.query.titre || null;
+  let tags = req.query.tags ? req.query.tags.split(',') : null;
+  if (tags) {
+    for (const tag of tags) {
+      if (isNaN(tag))
+        return res.status(400).json({ error: "ID de tag invalide" });
+    }
+    tags = tags.map(Number);
+  }
 
-  connection.query(
-    `SELECT formation.id, titre, date_creation,
+  const nbTags = tags ? tags.length : 0;
+  const tagQuery = `
+  formation.id IN (
+    SELECT posseder.id
+    FROM posseder
+    WHERE id_tag IN (:tags)
+    GROUP BY posseder.id
+    HAVING COUNT(DISTINCT id_tag) = :nbTags
+  ) AND`;
+
+  connection.query(`
+  SELECT DISTINCT formation.id, titre, date_creation,
     JSON_OBJECT('id', user.id, 'nom', user.nom, 'prenom', user.prenom) as user,
     IF(COUNT(tag.id) > 0, 
       JSON_ARRAYAGG(JSON_OBJECT('id', tag.id, 'nom', tag.nom)), JSON_ARRAY()) as tag
-    FROM formation
-    INNER JOIN user ON formation.id_user = user.id
-    LEFT JOIN posseder ON formation.id = posseder.id
-    LEFT JOIN tag ON posseder.id_tag = tag.id
-    WHERE 
-      (:titre IS NULL OR MATCH(titre) AGAINST(:titre IN BOOLEAN MODE))
-    GROUP BY formation.id
-    ORDER BY MATCH(titre) AGAINST(:titre IN BOOLEAN MODE) DESC
-    LIMIT :limit  
-    OFFSET :offset`,
-    { titre, limit, offset },
+  FROM formation
+  INNER JOIN user ON formation.id_user = user.id
+  LEFT JOIN posseder ON formation.id = posseder.id
+  LEFT JOIN tag ON posseder.id_tag = tag.id
+  WHERE 
+    ${nbTags > 0 ? tagQuery : ""} 
+    (:titre IS NULL OR MATCH(titre) AGAINST(:titre IN BOOLEAN MODE))
+  GROUP BY formation.id 
+  ORDER BY MATCH(titre) AGAINST(:titre IN BOOLEAN MODE) DESC 
+  LIMIT :limit 
+  OFFSET :offset 
+  `,
+    { titre, limit, offset, tags, nbTags },
     (err, results) => {
       if (err) {
         res.status(500).json({ error: err.message });
@@ -244,3 +264,7 @@ export const uploadPhoto = (req, res) => {
     }
   );
 };
+
+export const sendDefaultPhoto = (req, res) => {
+  res.sendFile("public/formations/default.png", { root: "." });
+}

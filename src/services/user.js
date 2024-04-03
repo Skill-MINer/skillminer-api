@@ -150,3 +150,7 @@ export const uploadPhoto = (req, res) => {
     }
   });
 }
+
+export const sendDefaultPhoto = (req, res) => {
+  res.sendFile("public/users/default.png", { root: "." });
+}
