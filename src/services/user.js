@@ -4,6 +4,8 @@ import { verifyEmail, verifyPassword } from '../scripts/verification.js';
 import { createToken } from '../scripts/createToken.js';
 import fs from 'fs';
 import dotenv from "dotenv";
+import gravatar from 'gravatar';
+
 
 dotenv.config();
 const tokenExpirationTime = process.env.TOKEN_EXPIRATION_TIME;
@@ -151,6 +153,22 @@ export const uploadPhoto = (req, res) => {
   });
 }
 
-export const sendDefaultPhoto = (req, res) => {
-  res.sendFile("public/users/default.png", { root: "." });
-}
+export const sendPhoto = (req, res) => {
+  const id = parseInt(req.params.id);
+  if (isNaN(id)) {
+    return res.status(400).json({ error: "Mauvais format de l'identifiant" });
+  }
+  res.sendFile(`public/users/${id}.png`, { root: '.' }, (err) => {
+    if (err) {
+      connection.query('SELECT email FROM user WHERE id = ?', [id], (err, results) => {
+        if (err) {
+          res.status(500).json({ error: err.message });
+        } else if (results.length === 0) {
+          res.status(404).json({ error: "Utilisateur non trouvé" });
+        } else {
+          res.redirect(307, gravatar.url(results[0].email, { s: '200', r: 'pg', d: 'identicon' }, true));
+        }
+      });
+    }
+  });
+};
