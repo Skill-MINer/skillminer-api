@@ -26,7 +26,7 @@ export const findAll = (req, res) => {
   ) AND`;
 
   connection.query(`
-  SELECT DISTINCT formation.id, titre, date_creation,
+  SELECT DISTINCT formation.id, titre, description, date_creation,
     JSON_OBJECT('id', user.id, 'nom', user.nom, 'prenom', user.prenom) as user,
     IF(COUNT(tag.id) > 0, 
       JSON_ARRAYAGG(JSON_OBJECT('id', tag.id, 'nom', tag.nom)), JSON_ARRAY()) as tag
@@ -61,7 +61,7 @@ export const findById = (req, res) => {
   connection.query(
     `
   SELECT 
-    formation.id, titre, date_creation,
+    formation.id, titre, description, date_creation,
     JSON_OBJECT('id', user.id, 'nom', user.nom, 'prenom', user.prenom) as user,
     IF(COUNT(tag.id) > 0, 
       JSON_ARRAYAGG(JSON_OBJECT('id', tag.id, 'nom', tag.nom)), JSON_ARRAY()) as tag 
@@ -86,18 +86,17 @@ export const findById = (req, res) => {
 };
 
 export const add = async (req, res) => {
-  const { titre, tags } = req.body;
+  const { titre, description, tags } = req.body;
   const id_user = req.id;
-  if (!titre) {
+  if (!titre || !description) {
     return res.status(400).json({ error: "Body invalide" });
   }
   const dateCreation = new Date();
 
-  connection.query(
-    `
-  INSERT INTO formation (titre, date_creation, id_user) 
-  VALUES (?, ?, ?)`,
-    [titre, dateCreation, id_user],
+  connection.query(`
+  INSERT INTO formation (titre, description, date_creation, id_user) 
+  VALUES (?, ?, ?, ?)`,
+    [titre, description, dateCreation, id_user],
     (err, results) => {
       if (err) {
         res.status(500).json({ error: err.message });
@@ -105,8 +104,7 @@ export const add = async (req, res) => {
         const formationId = results.insertId;
         if (tags && tags.length > 0) {
           const tagValues = tags.map(tagId => [formationId, tagId]);
-          connection.query(
-            `
+          connection.query(`
             INSERT INTO posseder (id, id_tag) 
             VALUES ?`,
             [tagValues],
@@ -129,17 +127,19 @@ export const add = async (req, res) => {
 export const update = (req, res) => {
   const id = parseInt(req.params.id);
   const id_user = req.id;
-  const { titre } = req.body;
-  if (!titre || isNaN(id)) {
+  const { titre, description } = req.body;
+  if ((!titre && !description) || isNaN(id)) {
     return res.status(400).json({ error: "Body invalide" });
   }
-  connection.query(
-    `
+  connection.query(`
   UPDATE formation
   SET 
-      titre = CASE WHEN :titre IS NOT NULL THEN :titre ELSE titre END
+      titre = CASE WHEN :titre IS NOT NULL 
+        THEN :titre ELSE titre END,
+      description = CASE WHEN :description IS NOT NULL 
+        THEN :description ELSE description END
   WHERE id = :id AND id_user = :id_user`,
-    { id, titre, id_user},
+    { id, titre, description, id_user},
     (err, results) => {
       if (err) {
         res.status(500).json({ error: err.message });
@@ -182,8 +182,7 @@ export const addTags = (req, res) => {
     return res.status(400).json({ error: "Body invalide" });
   }
 
-  connection.query(
-    `
+  connection.query(`
     INSERT INTO posseder (id, id_tag) 
     SELECT :id_formation, :id_tag 
     FROM formation 
@@ -211,8 +210,7 @@ export const removeTag = (req, res) => {
     return res.status(400).json({ error: "ID de tag invalide" });
   }
 
-  connection.query(
-    `
+  connection.query(`
     DELETE FROM posseder
     WHERE id = :id_formation
       AND id_tag = :id_tag
