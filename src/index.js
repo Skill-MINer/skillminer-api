@@ -55,7 +55,7 @@ app.delete("/formations/:id", auth, formation.deleteFormation);
 app.post("/formations/:id/tags", auth, formation.addTags);
 app.delete("/formations/:id/tags", auth, formation.removeTag);
 
-app.get("/tags", limitOffset, tag.findAll);
+app.get("/tags", auth, tag.findAll);
 app.post("/tags", auth, tag.add);
 
 app.post("/file/users", auth, uploadUser.single("file"), user.uploadPhoto);

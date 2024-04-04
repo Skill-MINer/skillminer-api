@@ -1,11 +1,9 @@
 import connection from "../database/database.js";
 
 export const findAll = (req, res) => {
-  const limit = req.limit;
-  const offset = req.offset;
   connection.query(
-    "SELECT id, nom FROM tag LIMIT ? OFFSET ?",
-    [limit, offset],
+    "SELECT id, nom FROM tag ORDER BY nom ASC",
+    [],
     (err, results) => {
       if (err) {
         res.status(500).json({ error: err.message });
