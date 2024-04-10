@@ -172,3 +172,14 @@ export const sendPhoto = (req, res) => {
     }
   });
 };
+
+export const deletePhoto = (req, res) => {
+  const id = req.id;
+  fs.unlink(`public/users/${id}.png`, (err) => {
+    if (err) {
+      res.status(500).json({ error: "Erreur lors de la suppression de la photo" });
+    } else {
+      res.status(200).json({ message: "Photo supprimée" });
+    }
+  });
+}
