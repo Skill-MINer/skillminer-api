@@ -61,6 +61,7 @@ app.post("/tags", auth, tag.add);
 app.post("/file/users", auth, uploadUser.single("file"), user.uploadPhoto);
 app.post("/file/formations/:id", auth, uploadFormation.single("file"), formation.uploadPhoto);
 app.get("/file/users/:id", user.sendPhoto);
+app.delete("/file/users", auth, user.deletePhoto);
 app.use("/file/formations", express.static("public/formations"), formation.sendDefaultPhoto);
 
 app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerFile));
