@@ -5,6 +5,7 @@ dotenv.config();
 
 const connection = mysql.createConnection({
   host: process.env.BDD_HOST,
+  port: process.env.BBD_PORT,
   user: process.env.BDD_USER,
   password: process.env.BDD_PASSWORD,
   database: process.env.BDD_NAME,
