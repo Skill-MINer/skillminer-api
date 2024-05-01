@@ -1,6 +1,14 @@
 import connection from "../database/database.js";
 import fs from 'fs';
 import { deletePhoto } from "../scripts/file.js";
+import dotenv from "dotenv";
+import { unescape } from "querystring";
+
+
+dotenv.config();
+const API_KEY_HUGGINGFACE = process.env.API_KEY_HUGGINGFACE;
+const MODEL_NAME = process.env.MODEL_NAME;
+
 
 export const findAll = (req, res) => {
   const limit = req.limit;
@@ -265,4 +273,35 @@ export const uploadPhoto = (req, res) => {
 
 export const sendDefaultPhoto = (req, res) => {
   res.sendFile("public/formations/default.png", { root: "." });
+}
+
+export const generate = async (req, res) => {
+  const codeBlock = "```langage a = 1 ```";
+  const response = await fetch(
+		`https://api-inference.huggingface.co/models/${MODEL_NAME}`, {
+			headers: { 
+        Authorization: `Bearer ${API_KEY_HUGGINGFACE}`, 
+        'Content-Type': 'application/json'
+      },
+			method: "POST",
+			body: JSON.stringify({
+        "inputs": `[INST] Tu es un expert en création de formations sur une variété de sujets.\
+Les formations seront rédigées en Markdown. Tu peux inclure des blocs de code en spécifiant le langage utilisé : ${codeBlock}.\
+Pour intégrer du code LaTeX, encadre simplement l'expression entre des symboles $, sans utiliser de blocs de code, par exemple : $f(x) = x$ ou $x$.\
+Si nécessaire, tu peux également utiliser des emojis en utilisant emoji-toolkit, par exemple :heart:. [/INST] \
+[INST] Rédige une formation détaillée sur le sujet "${req.body.name}" en français. [/INST]`,
+        "parameters": {
+          "max_new_tokens": 4096,
+          "return_full_text": false
+        }
+      }),
+		}
+	);
+  
+  if (response.status !== 200) {
+    res.status(500).json({ error: "Erreur lors de la génération" });
+  }
+
+  const data = (await response.json())[0].generated_text;
+  res.status(200).json({ text: data });
 }
