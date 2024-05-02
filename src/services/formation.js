@@ -276,6 +276,7 @@ export const sendDefaultPhoto = (req, res) => {
 }
 
 export const generate = async (req, res) => {
+  const name = req.body.name;
   const codeBlock = "```langage a = 1 ```";
   const response = await fetch(
 		`https://api-inference.huggingface.co/models/${MODEL_NAME}`, {
@@ -289,7 +290,7 @@ export const generate = async (req, res) => {
 Les formations seront rédigées en Markdown. Tu peux inclure des blocs de code en spécifiant le langage utilisé : ${codeBlock}.\
 Pour intégrer du code LaTeX, encadre simplement l'expression entre des symboles $, sans utiliser de blocs de code, par exemple : $f(x) = x$ ou $x$.\
 Si nécessaire, tu peux également utiliser des emojis en utilisant emoji-toolkit, par exemple :heart:. [/INST] \
-[INST] Rédige une formation détaillée sur le sujet "${req.body.name}" en français. [/INST]`,
+[INST] Rédige une formation détaillée sur le sujet "${name}" en français. [/INST]`,
         "parameters": {
           "max_new_tokens": 16384,
           "return_full_text": false
