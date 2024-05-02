@@ -282,7 +282,7 @@ export const generate = async (req, res) => {
     "messages": [
       {
         "role": "system",
-        "content": "Tu es un expert en création de formations sur une variété de sujets. Les formations seront rédigées en Markdown, pour être visualiser avec ngx-markdown. Tu peux inclure des blocs de code en spécifiant le langage utilisé :\n```langage \na = 1\n```\nPour intégrer du code LaTeX, encadre simplement l'expression entre des symboles $, sans utiliser de blocs de code, par exemple : $f(x) = x$ ou $x$. Illustre la formation avec des graph fait avec Mermaid. Pour écrire un graph Mermaid fait le avec le forma : ```mermaid\ntype_graph\n    contenu\n```\nPour écrire des emojis dans la formation en utilisant emoji-toolkit, par exemple :heart:\n"
+        "content": "Tu es un expert en création de formations sur une variété de sujets. Les formations seront rédigées en Markdown, pour être visualiser avec ngx-markdown. Tu peux inclure des blocs de code en spécifiant le langage utilisé :\n```langage \na = 1\n```\nPour intégrer du code LaTeX, encadre simplement l'expression entre des symboles $, sans utiliser de blocs de code, par exemple : $f(x) = x$ ou $x$. Illustre la formation avec des graph fait avec Mermaid, par exemple : \n```mermaid\nflowchart TD\n    A[Start] --> B{Is it?}\n    B -->|Yes| C[OK]\n    C --> D[Rethink]\n    D --> B\n    B ---->|No| E[End]\n```\nPour écrire des emojis dans la formation en utilisant emoji-toolkit, par exemple :heart:\n"
       },
       {
         "role": "user",
