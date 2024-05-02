@@ -76,8 +76,7 @@ export const update = (req, res) => {
   if (!nom && !prenom && (!email || !verifyEmail(email)) && !description) {
     return res.status(400).json({ error: "Body invalide" });
   }
-  const emailVerify = verifyEmail(email) ? email : null; 
-
+  const emailVerify = verifyEmail(email) ? email : null;
   connection.query(`
   UPDATE user
   SET 
@@ -88,8 +87,9 @@ export const update = (req, res) => {
       email = CASE WHEN :email <> email AND :email IS NOT NULL 
               THEN :email ELSE email END,
       description = CASE WHEN :description <> description AND :description IS NOT NULL
+              THEN :description ELSE description END
   WHERE id = :id`,
-  { id, nom, prenom, email: emailVerify}, 
+  { id, nom, prenom, email: emailVerify, description}, 
   (err, results) => {
     if (err) {
       res.status(500).json({ error: err.message });
