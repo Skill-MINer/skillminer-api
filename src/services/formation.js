@@ -2,12 +2,13 @@ import connection from "../database/database.js";
 import fs from 'fs';
 import { deletePhoto } from "../scripts/file.js";
 import dotenv from "dotenv";
-import { unescape } from "querystring";
+import Groq from "groq-sdk";
 
 
 dotenv.config();
-const API_KEY_HUGGINGFACE = process.env.API_KEY_HUGGINGFACE;
-const MODEL_NAME = process.env.MODEL_NAME;
+const groq = new Groq({
+  apiKey: process.env.API_KEY_GROQ
+});
 
 
 export const findAll = (req, res) => {
@@ -277,40 +278,25 @@ export const sendDefaultPhoto = (req, res) => {
 
 export const generate = async (req, res) => {
   const name = req.body.name;
-  const codeBlock = "```langage a = 1 ```";
-  const diagrammes1 = `\`\`\`mermaid
-graph TD;
-  A-->B;
-  A-->C;
-  B-->D;
-  C-->D;
-\`\`\``;
-  const response = await fetch(
-		`https://api-inference.huggingface.co/models/${MODEL_NAME}`, {
-			headers: { 
-        Authorization: `Bearer ${API_KEY_HUGGINGFACE}`, 
-        'Content-Type': 'application/json'
+  const chatCompletion = await groq.chat.completions.create({
+    "messages": [
+      {
+        "role": "system",
+        "content": "Tu es un expert en création de formations sur une variété de sujets. Les formations seront rédigées en Markdown, pour être visualiser avec ngx-markdown. Tu peux inclure des blocs de code en spécifiant le langage utilisé :\n```langage \na = 1\n```\nPour intégrer du code LaTeX, encadre simplement l'expression entre des symboles $, sans utiliser de blocs de code, par exemple : $f(x) = x$ ou $x$. Illustre la formation avec des graph fait avec Mermaid. Pour écrire un graph Mermaid fait le avec le forma : ```mermaid\ntype_graph\n    contenu\n```\nPour écrire des emojis dans la formation en utilisant emoji-toolkit, par exemple :heart:\n"
       },
-			method: "POST",
-			body: JSON.stringify({
-        "inputs": `[INST] Tu es un expert en création de formations sur une variété de sujets. \
-Les formations seront rédigées en Markdown. Tu peux inclure des blocs de code en spécifiant le langage utilisé : ${codeBlock}. \
-Pour intégrer du code LaTeX, encadre simplement l'expression entre des symboles $, sans utiliser de blocs de code, par exemple : $f(x) = x$ ou $x$. \
-Pour écrire des emojis dans la fromation en utilisant emoji-toolkit, par exemple :heart:. \
-Tu peux faire des diagrammes et des graphiques en utilisant Mermaid, par exemple : ${diagrammes1}. [/INST] \
-[INST] Rédige une formation longue et détaillée sur le sujet "${name}" en français. [/INST]`,
-        "parameters": {
-          "max_new_tokens": 16384,
-          "return_full_text": false
-        }
-      }),
-		}
-	);
-  
-  if (response.status !== 200) {
-    res.status(500).json({ error: "Erreur lors de la génération" });
-  }
+      {
+        "role": "user",
+        "content": `Rédige une formation longue et détaillée sur le sujet "${name}" en français.`
+      }
+    ],
+    "model": "llama3-70b-8192",
+    "temperature": 1,
+    "max_tokens": 8192,
+    "top_p": 1,
+    "stream": false,
+    "stop": null
+  });
 
-  const data = (await response.json())[0].generated_text;
+  const data = chatCompletion.choices[0].message.content;
   res.status(200).json({ text: data });
 }
