@@ -137,7 +137,7 @@ export const login = async (req, res) => {
 export const tokenInfo = async (req, res) => {
   const id = req.id;
   connection.query(
-    "SELECT id, nom, prenom, email, date_inscription FROM user WHERE id = ?",
+    "SELECT id, nom, prenom, email, description, date_inscription FROM user WHERE id = ?",
     [id],
     (err, results) => {
       if (err) {
