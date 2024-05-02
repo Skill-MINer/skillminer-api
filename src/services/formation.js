@@ -291,7 +291,7 @@ Pour intégrer du code LaTeX, encadre simplement l'expression entre des symboles
 Si nécessaire, tu peux également utiliser des emojis en utilisant emoji-toolkit, par exemple :heart:. [/INST] \
 [INST] Rédige une formation détaillée sur le sujet "${req.body.name}" en français. [/INST]`,
         "parameters": {
-          "max_new_tokens": 4096,
+          "max_new_tokens": 16384,
           "return_full_text": false
         }
       }),
