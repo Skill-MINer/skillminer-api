@@ -58,8 +58,8 @@ export const add = async (req, res) => {
   const dateInscription = new Date();
 
   connection.query(`
-  INSERT INTO user (nom, prenom, email, password, date_inscription, permission) 
-  VALUES (?, ?, ?, ?, ?, ?)`, [ nom, prenom, email, hashPassword, dateInscription, 0 ], 
+  INSERT INTO user (nom, prenom, email, password, description, date_inscription, permission) 
+  VALUES (?, ?, ?, ?, ?, ?, ?)`, [ nom, prenom, email, hashPassword, "", dateInscription, 0 ], 
   (err, results) => {
     if (err) {
       res.status(500).json({ error: err.message });

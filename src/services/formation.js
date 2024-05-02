@@ -34,7 +34,7 @@ export const findAll = (req, res) => {
   ) AND`;
 
   connection.query(`
-  SELECT DISTINCT formation.id, titre, description, date_creation,
+  SELECT DISTINCT formation.id, titre, formation.description, date_creation,
     JSON_OBJECT('id', user.id, 'nom', user.nom, 'prenom', user.prenom) as user,
     IF(COUNT(tag.id) > 0, 
       JSON_ARRAYAGG(JSON_OBJECT('id', tag.id, 'nom', tag.nom)), JSON_ARRAY()) as tag
@@ -69,7 +69,7 @@ export const findById = (req, res) => {
   connection.query(
     `
   SELECT 
-    formation.id, titre, description, date_creation,
+    formation.id, titre, formation.description, date_creation,
     JSON_OBJECT('id', user.id, 'nom', user.nom, 'prenom', user.prenom) as user,
     IF(COUNT(tag.id) > 0, 
       JSON_ARRAYAGG(JSON_OBJECT('id', tag.id, 'nom', tag.nom)), JSON_ARRAY()) as tag 
