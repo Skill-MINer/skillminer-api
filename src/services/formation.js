@@ -278,6 +278,13 @@ export const sendDefaultPhoto = (req, res) => {
 export const generate = async (req, res) => {
   const name = req.body.name;
   const codeBlock = "```langage a = 1 ```";
+  const diagrammes1 = `\`\`\`mermaid
+graph TD;
+  A-->B;
+  A-->C;
+  B-->D;
+  C-->D;
+\`\`\``;
   const response = await fetch(
 		`https://api-inference.huggingface.co/models/${MODEL_NAME}`, {
 			headers: { 
@@ -286,11 +293,12 @@ export const generate = async (req, res) => {
       },
 			method: "POST",
 			body: JSON.stringify({
-        "inputs": `[INST] Tu es un expert en création de formations sur une variété de sujets.\
-Les formations seront rédigées en Markdown. Tu peux inclure des blocs de code en spécifiant le langage utilisé : ${codeBlock}.\
-Pour intégrer du code LaTeX, encadre simplement l'expression entre des symboles $, sans utiliser de blocs de code, par exemple : $f(x) = x$ ou $x$.\
-Si nécessaire, tu peux également utiliser des emojis en utilisant emoji-toolkit, par exemple :heart:. [/INST] \
-[INST] Rédige une formation détaillée sur le sujet "${name}" en français. [/INST]`,
+        "inputs": `[INST] Tu es un expert en création de formations sur une variété de sujets. \
+Les formations seront rédigées en Markdown. Tu peux inclure des blocs de code en spécifiant le langage utilisé : ${codeBlock}. \
+Pour intégrer du code LaTeX, encadre simplement l'expression entre des symboles $, sans utiliser de blocs de code, par exemple : $f(x) = x$ ou $x$. \
+Pour écrire des emojis dans la fromation en utilisant emoji-toolkit, par exemple :heart:. \
+Tu peux faire des diagrammes et des graphiques en utilisant Mermaid, par exemple : ${diagrammes1}. [/INST] \
+[INST] Rédige une formation longue et détaillée sur le sujet "${name}" en français. [/INST]`,
         "parameters": {
           "max_new_tokens": 16384,
           "return_full_text": false
