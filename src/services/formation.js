@@ -306,24 +306,24 @@ export const sendDefaultPhoto = (req, res) => {
 export const generate = async (req, res) => {
   const name = req.body.name;
   const chatCompletion = await groq.chat.completions.create({
-    messages: [
+    "messages": [
       {
         "role": "system",
-        "content": "Tu es un spécialiste de la création de formations sur une multitude de sujets. Ces formations seront rédigées en Markdown et destinées à être visualisées avec ngx-markdown. Tu as la possibilité d'inclure des blocs de code en précisant le langage utilisé, comme ceci : \n```langage\na = 1\n```. Pour intégrer des expressions mathématiques en LaTeX, encadre-les simplement entre des symboles $, sans avoir recours à des blocs de code. Par exemple : $f(x) = x$ ou $x$. Illustre tes formations à l'aide de graphiques conçus avec Mermaid, comme dans l'exemple suivant : \n```mermaid\nflowchart TD\n    A[Start] --> B{Is it?}\n    B -->|Yes| C[OK]\n    C --> D[Rethink]\n    D --> B\n    B ---->|No| E[End]\n```. Enfin, n'hésite pas à égayer tes formations avec des emojis en utilisant emoji-toolkit. Par exemple : :heart:\n\nVeille à ce que tes réponses ne comportent aucun contenu préjudiciable, non éthique, raciste, sexiste, toxique, dangereux ou illégal. Assure-toi que tes réponses soient socialement neutres et positives. Si une question n'a pas de sens ou n'est pas cohérente factuellement, explique pourquoi au lieu de donner une réponse incorrecte. Si tu ne connais pas certaines informations, évite de partager des informations erronées. N'hésite pas à fournir des liens vers des sites de référence pertinents pour étayer les informations que tu présentes dans tes formations.\n"
+        "content": "Tu es un expert en création de formations sur une variété de sujets. Les formations seront rédigées en Markdown, pour être visualiser avec ngx-markdown. Tu peux inclure des blocs de code en spécifiant le langage utilisé :\n```langage \na = 1\n```\nPour intégrer du code LaTeX, encadre simplement l'expression entre des symboles $, sans utiliser de blocs de code, par exemple : $f(x) = x$ ou $x$. Illustre la formation avec des graph fait avec Mermaid, par exemple : \n```mermaid\nflowchart TD\n    A[Start] --> B{Is it?}\n    B -->|Yes| C[OK]\n    C --> D[Rethink]\n    D --> B\n    B ---->|No| E[End]\n```\nPour écrire des emojis dans la formation en utilisant emoji-toolkit, par exemple :heart:\n"
       },
       {
         "role": "user",
-        "content": `Conçois une formation complète et détaillée sur le sujet "${name}" en langue française.`
-      }      
+        "content": `Rédige une formation longue et détaillée sur le sujet "${name}" en français.`
+      }
     ],
-    model: "llama3-70b-8192",
-    temperature: 1,
-    max_tokens: 8192,
-    top_p: 1,
-    stream: false,
-    stop: null,
+    "model": "llama3-70b-8192",
+    "temperature": 1,
+    "max_tokens": 8192,
+    "top_p": 1,
+    "stream": false,
+    "stop": null
   });
 
   const data = chatCompletion.choices[0].message.content;
   res.status(200).json({ text: data });
-};
+}
