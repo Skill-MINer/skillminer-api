@@ -1,21 +1,19 @@
 import connection from "../database/database.js";
-import fs from 'fs';
+import fs from "fs";
 import { deletePhoto } from "../scripts/file.js";
 import dotenv from "dotenv";
 import Groq from "groq-sdk";
 
-
 dotenv.config();
 const groq = new Groq({
-  apiKey: process.env.API_KEY_GROQ
+  apiKey: process.env.API_KEY_GROQ,
 });
-
 
 export const findAll = (req, res) => {
   const limit = req.limit;
   const offset = req.offset;
   const titre = req.query.titre || null;
-  let tags = req.query.tags ? req.query.tags.split(',') : null;
+  let tags = req.query.tags ? req.query.tags.split(",") : null;
   if (tags) {
     for (const tag of tags) {
       if (isNaN(tag))
@@ -34,7 +32,8 @@ export const findAll = (req, res) => {
     HAVING COUNT(DISTINCT id_tag) = :nbTags
   ) AND`;
 
-  connection.query(`
+  connection.query(
+    `
   SELECT DISTINCT formation.id, titre, formation.description, date_creation,
     JSON_OBJECT('id', user.id, 'nom', user.nom, 'prenom', user.prenom) as user,
     IF(COUNT(tag.id) > 0, 
@@ -102,7 +101,8 @@ export const add = async (req, res) => {
   }
   const dateCreation = new Date();
 
-  connection.query(`
+  connection.query(
+    `
   INSERT INTO formation (titre, description, date_creation, id_user) 
   VALUES (?, ?, ?, ?)`,
     [titre, description, dateCreation, id_user],
@@ -112,14 +112,20 @@ export const add = async (req, res) => {
       } else {
         const formationId = results.insertId;
         if (tags && tags.length > 0) {
-          const tagValues = tags.map(tagId => [formationId, tagId]);
-          connection.query(`
+          const tagValues = tags.map((tagId) => [formationId, tagId]);
+          connection.query(
+            `
             INSERT INTO posseder (id, id_tag) 
             VALUES ?`,
             [tagValues],
             (err, results) => {
               if (err) {
-                res.status(500).json({ error: err.message, error_tag: "Erreur lors de l'ajout des tags" });
+                res
+                  .status(500)
+                  .json({
+                    error: err.message,
+                    error_tag: "Erreur lors de l'ajout des tags",
+                  });
               } else {
                 res.status(201).json({ id: formationId });
               }
@@ -140,7 +146,8 @@ export const update = (req, res) => {
   if ((!titre && !description) || isNaN(id)) {
     return res.status(400).json({ error: "Body invalide" });
   }
-  connection.query(`
+  connection.query(
+    `
   UPDATE formation
   SET 
       titre = CASE WHEN :titre IS NOT NULL 
@@ -148,12 +155,14 @@ export const update = (req, res) => {
       description = CASE WHEN :description IS NOT NULL 
         THEN :description ELSE description END
   WHERE id = :id AND id_user = :id_user`,
-    { id, titre, description, id_user},
+    { id, titre, description, id_user },
     (err, results) => {
       if (err) {
         res.status(500).json({ error: err.message });
       } else if (results.affectedRows === 0) {
-        res.status(401).json({ error: "Utilisateur non autorisé ou formation non trouvée" });
+        res
+          .status(401)
+          .json({ error: "Utilisateur non autorisé ou formation non trouvée" });
       } else {
         res.status(200).json({ message: results.info });
       }
@@ -175,7 +184,9 @@ export const deleteFormation = (req, res) => {
       if (err) {
         res.status(500).json({ error: err.message });
       } else if (results.affectedRows === 0) {
-        res.status(401).json({ error: "Utilisateur non autorisé ou formation non trouvée" });
+        res
+          .status(401)
+          .json({ error: "Utilisateur non autorisé ou formation non trouvée" });
       } else {
         res.status(200).json({ message: "Formation supprimée" });
       }
@@ -191,7 +202,8 @@ export const addTags = (req, res) => {
     return res.status(400).json({ error: "Body invalide" });
   }
 
-  connection.query(`
+  connection.query(
+    `
     INSERT INTO posseder (id, id_tag) 
     SELECT :id_formation, :id_tag 
     FROM formation 
@@ -202,7 +214,12 @@ export const addTags = (req, res) => {
       if (err) {
         res.status(500).json({ error: err.message });
       } else if (results.affectedRows === 0) {
-        res.status(401).json({ error: "utilisateur non autorisé ou formation non trouvée ou tag déjà possédé ou tag non existant" });
+        res
+          .status(401)
+          .json({
+            error:
+              "utilisateur non autorisé ou formation non trouvée ou tag déjà possédé ou tag non existant",
+          });
       } else {
         res.status(201).json({ message: "Tag ajouté" });
       }
@@ -214,12 +231,13 @@ export const removeTag = (req, res) => {
   const id_formation = req.params.id;
   const id_tag = req.body.id_tag;
   const id_user = req.id;
-  
+
   if (!id_tag) {
     return res.status(400).json({ error: "ID de tag invalide" });
   }
 
-  connection.query(`
+  connection.query(
+    `
     DELETE FROM posseder
     WHERE id = :id_formation
       AND id_tag = :id_tag
@@ -235,7 +253,12 @@ export const removeTag = (req, res) => {
       if (err) {
         res.status(500).json({ error: err.message });
       } else if (results.affectedRows === 0) {
-        res.status(401).json({ error: "Utilisateur non autorisé ou formation non trouvée ou le tag n'existe pas dans cette formation" });
+        res
+          .status(401)
+          .json({
+            error:
+              "Utilisateur non autorisé ou formation non trouvée ou le tag n'existe pas dans cette formation",
+          });
       } else {
         res.status(200).json({ message: "Tag supprimé de la formation" });
       }
@@ -253,16 +276,20 @@ export const uploadPhoto = (req, res) => {
     "SELECT id_user FROM formation WHERE id = ? AND id_user = ?",
     [id, id_user],
     (err, results) => {
-      if (err) {    
-        deletePhoto(req.file.path);    
+      if (err) {
+        deletePhoto(req.file.path);
         return res.status(500).json({ error: err.message });
       } else if (results.length === 0) {
         deletePhoto(req.file.path);
-        return res.status(401).json({ error: "Utilisateur non autorisé ou formation non trouvée" });
+        return res
+          .status(401)
+          .json({ error: "Utilisateur non autorisé ou formation non trouvée" });
       } else {
         fs.rename(req.file.path, `${req.file.destination}${id}.png`, (err) => {
           if (err) {
-            return res.status(500).send("Erreur lors de l'enregistrement du fichier");
+            return res
+              .status(500)
+              .send("Erreur lors de l'enregistrement du fichier");
           } else {
             return res.status(200).json({ message: "Photo enregistré" });
           }
@@ -274,29 +301,29 @@ export const uploadPhoto = (req, res) => {
 
 export const sendDefaultPhoto = (req, res) => {
   res.sendFile("public/formations/default.png", { root: "." });
-}
+};
 
 export const generate = async (req, res) => {
   const name = req.body.name;
   const chatCompletion = await groq.chat.completions.create({
-    "messages": [
+    messages: [
       {
         "role": "system",
-        "content": "Tu es un expert en création de formations sur une variété de sujets. Les formations seront rédigées en Markdown, pour être visualiser avec ngx-markdown. Tu peux inclure des blocs de code en spécifiant le langage utilisé :\n```langage \na = 1\n```\nPour intégrer du code LaTeX, encadre simplement l'expression entre des symboles $, sans utiliser de blocs de code, par exemple : $f(x) = x$ ou $x$. Illustre la formation avec des graph fait avec Mermaid, par exemple : \n```mermaid\nflowchart TD\n    A[Start] --> B{Is it?}\n    B -->|Yes| C[OK]\n    C --> D[Rethink]\n    D --> B\n    B ---->|No| E[End]\n```\nPour écrire des emojis dans la formation en utilisant emoji-toolkit, par exemple :heart:\n"
+        "content": "Tu es un spécialiste de la création de formations sur une multitude de sujets. Ces formations seront rédigées en Markdown et destinées à être visualisées avec ngx-markdown. Tu as la possibilité d'inclure des blocs de code en précisant le langage utilisé, comme ceci : \n```langage\na = 1\n```. Pour intégrer des expressions mathématiques en LaTeX, encadre-les simplement entre des symboles $, sans avoir recours à des blocs de code. Par exemple : $f(x) = x$ ou $x$. Illustre tes formations à l'aide de graphiques conçus avec Mermaid, comme dans l'exemple suivant : \n```mermaid\nflowchart TD\n    A[Start] --> B{Is it?}\n    B -->|Yes| C[OK]\n    C --> D[Rethink]\n    D --> B\n    B ---->|No| E[End]\n```. Enfin, n'hésite pas à égayer tes formations avec des emojis en utilisant emoji-toolkit. Par exemple : :heart:\n\nVeille à ce que tes réponses ne comportent aucun contenu préjudiciable, non éthique, raciste, sexiste, toxique, dangereux ou illégal. Assure-toi que tes réponses soient socialement neutres et positives. Si une question n'a pas de sens ou n'est pas cohérente factuellement, explique pourquoi au lieu de donner une réponse incorrecte. Si tu ne connais pas certaines informations, évite de partager des informations erronées. N'hésite pas à fournir des liens vers des sites de référence pertinents pour étayer les informations que tu présentes dans tes formations.\n"
       },
       {
         "role": "user",
-        "content": `Rédige une formation longue et détaillée sur le sujet "${name}" en français.`
-      }
+        "content": `Conçois une formation complète et détaillée sur le sujet "${name}" en langue française.`
+      }      
     ],
-    "model": "llama3-70b-8192",
-    "temperature": 1,
-    "max_tokens": 8192,
-    "top_p": 1,
-    "stream": false,
-    "stop": null
+    model: "llama3-70b-8192",
+    temperature: 1,
+    max_tokens: 8192,
+    top_p: 1,
+    stream: false,
+    stop: null,
   });
 
   const data = chatCompletion.choices[0].message.content;
   res.status(200).json({ text: data });
-}
+};

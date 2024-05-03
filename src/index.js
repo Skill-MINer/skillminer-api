@@ -5,6 +5,8 @@ import dotenv from "dotenv";
 import swaggerUi from "swagger-ui-express";
 import fs from "fs";
 import multer from "multer";
+import http from "http";
+import https from "https";
 
 import { auth } from "./middleware/authentication.js";
 import { limitOffset } from "./middleware/limitOffset.js";
@@ -13,15 +15,16 @@ import * as formation from "./services/formation.js";
 import * as login from "./services/login.js";
 import * as user from "./services/user.js";
 
+dotenv.config();
+
 const swaggerFile = JSON.parse(
   fs.readFileSync("./src/swagger/swagger-output.json", "utf-8")
 );
 const URL_BACK = `${process.env.URL_BACK}:${process.env.PORT}`;
 const PORT = process.env.PORT;
 
-dotenv.config();
-
 const app = express();
+
 const corsOptions = {
   origin: "*",
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
@@ -68,8 +71,21 @@ app.use("/file/formations", express.static("public/formations"), formation.sendD
 app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerFile));
 app.use((req, res) => res.status(404).send({ error: "Page non trouvée" }));
 
-app.listen(PORT, () => {
-  console.log(
-    `Serveur en cours d'exécution sur le port ${PORT}, documentation ${URL_BACK}/swagger`
-  );
-});
+if (process.env.ENVIRONMENT === "production") {
+  const ssl_certificate_key = fs.readFileSync(process.env.SSL_KEY, "utf8");
+  const ssl_certificate = fs.readFileSync(process.env.SSL_CERT, "utf8");
+  const credentials = { key: ssl_certificate_key, cert: ssl_certificate };
+  const httpsServer = https.createServer(credentials, app);
+  httpsServer.listen(PORT, () => {
+    console.log(
+      `Serveur en cours d'exécution sur le port ${PORT}, documentation ${URL_BACK}/swagger with prod`
+    );
+  });
+} else {
+  const httpServer = http.createServer(app);
+  httpServer.listen(PORT, () => {
+    console.log(
+      `Serveur en cours d'exécution sur le port ${PORT}, documentation ${URL_BACK}/swagger with dev`
+    );
+  });
+}

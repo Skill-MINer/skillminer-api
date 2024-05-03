@@ -9,6 +9,7 @@ const connection = mysql.createConnection({
   user: process.env.BDD_USER,
   password: process.env.BDD_PASSWORD,
   database: process.env.BDD_NAME,
+  connectTimeout: 0,
 });
 
 connection.config.namedPlaceholders = true;
