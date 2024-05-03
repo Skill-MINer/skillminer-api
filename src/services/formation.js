@@ -374,24 +374,23 @@ export const getContenu = (req, res) => {
         res.status(404).json({ error: "Formation(s) non trouvée(s)" });
       } else {
         data = results[0];
-      }
-    }
-  );
-  connection.query(`
-  SELECT id, nom, contenu, ordre, id_formation
-  FROM section
-  WHERE id_formation = ?
-  ORDER BY ordre
-  `,
-    [id],
-    (err, results) => {
-      if (err) {
-        res.status(500).json({ error: err.message });
-      } else if (results.length === 0) {
-        res.status(404).json({ error: "Contenu non trouvé" });
-      } else {
-        data.body = results.map(({ id, nom, contenu }) => ({ id, nom, contenu }));
-        res.status(200).json(data);
+        connection.query(`
+          SELECT id, nom, contenu, ordre, id_formation
+          FROM section
+          WHERE id_formation = ?
+          ORDER BY ordre
+          `, [id],
+            (err, results) => {
+              if (err) {
+                res.status(500).json({ error: err.message });
+              } else if (results.length === 0) {
+                res.status(404).json({ error: "Contenu non trouvé" });
+              } else {
+                data.body = results.map(({ id, nom, contenu }) => ({ id, nom, contenu }));
+                res.status(200).json(data);
+              }
+            }
+          );
       }
     }
   );
