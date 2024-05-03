@@ -63,23 +63,24 @@ export const findAll = (req, res) => {
   );
 };
 
+const findByIdQuery = `
+SELECT 
+  formation.id, titre, formation.description, date_creation,
+  JSON_OBJECT('id', user.id, 'nom', user.nom, 'prenom', user.prenom) as user,
+  IF(COUNT(tag.id) > 0, 
+    JSON_ARRAYAGG(JSON_OBJECT('id', tag.id, 'nom', tag.nom)), JSON_ARRAY()) as tag 
+FROM formation
+INNER JOIN user ON formation.id_user = user.id
+LEFT JOIN posseder ON formation.id = posseder.id
+LEFT JOIN tag ON posseder.id_tag = tag.id
+WHERE formation.id = ?
+GROUP BY formation.id
+`;
+
 export const findById = (req, res) => {
   const id = req.params.id;
 
-  connection.query(
-    `
-  SELECT 
-    formation.id, titre, formation.description, date_creation,
-    JSON_OBJECT('id', user.id, 'nom', user.nom, 'prenom', user.prenom) as user,
-    IF(COUNT(tag.id) > 0, 
-      JSON_ARRAYAGG(JSON_OBJECT('id', tag.id, 'nom', tag.nom)), JSON_ARRAY()) as tag 
-  FROM formation
-  INNER JOIN user ON formation.id_user = user.id
-  LEFT JOIN posseder ON formation.id = posseder.id
-  LEFT JOIN tag ON posseder.id_tag = tag.id
-  WHERE formation.id = ?
-  GROUP BY formation.id
-  `,
+  connection.query(findByIdQuery,
     [id],
     (err, results) => {
       if (err) {
@@ -363,6 +364,19 @@ export const addContenu = (req, res) => {
 
 export const getContenu = (req, res) => {
   const id = req.params.id;
+  let data = {};
+  connection.query(findByIdQuery,
+    [id],
+    (err, results) => {
+      if (err) {
+        res.status(500).json({ error: err.message });
+      } else if (results.length === 0) {
+        res.status(404).json({ error: "Formation(s) non trouvée(s)" });
+      } else {
+        data = results[0];
+      }
+    }
+  );
   connection.query(`
   SELECT id, nom, contenu, ordre, id_formation
   FROM section
@@ -376,7 +390,7 @@ export const getContenu = (req, res) => {
       } else if (results.length === 0) {
         res.status(404).json({ error: "Contenu non trouvé" });
       } else {
-        const data = results.map(({ nom, contenu }) => ({ nom, contenu }));
+        data.body = results.map(({ id, nom, contenu }) => ({ id, nom, contenu }));
         res.status(200).json(data);
       }
     }
