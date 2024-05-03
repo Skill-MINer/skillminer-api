@@ -53,6 +53,8 @@ app.delete("/users", auth, user.deleteWithToken);
 app.get("/formations/:id", formation.findById);
 app.get("/formations", limitOffset, formation.findAll);
 app.post("/formations", auth, formation.add);
+app.post("/formations/:id/contenu", auth, formation.addContenu);
+app.get("/formations/:id/contenu", formation.getContenu);
 app.post("/formations/generate", auth, formation.generate);
 app.patch("/formations/:id", auth, formation.update);
 app.delete("/formations/:id", auth, formation.deleteFormation);

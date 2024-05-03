@@ -327,3 +327,58 @@ export const generate = async (req, res) => {
   const data = chatCompletion.choices[0].message.content;
   res.status(200).json({ text: data });
 }
+
+export const addContenu = (req, res) => {
+  const id = req.params.id;
+  const id_user = req.id;
+  const contenus = req.body;
+  if (!contenus || !Array.isArray(contenus)) {
+    return res.status(400).json({ error: "Body invalide" });
+  }
+  let ordre = 0;
+
+  contenus.forEach(({ nom, contenu }) => {
+    const contenuString = JSON.stringify(contenu);
+    connection.query(`
+    INSERT INTO section (nom, contenu, ordre, id_formation)
+    SELECT :nom, :contenu, :ordre, :id 
+    FROM formation
+    WHERE id = :id AND id_user = :id_user
+    `,
+      { id, contenu: contenuString, nom, ordre, id_user },
+      (err, results) => {
+        if (err) {
+          return res.status(500).json({ error: err.message });
+        } else if (results.affectedRows === 0) {
+          return res
+            .status(401)
+            .json({ error: "Utilisateur non autorisé ou formation non trouvée" });
+        }
+      }
+    );
+    ordre++;
+  });
+  return res.status(201).json({ message: "Contenu ajouté" });
+}
+
+export const getContenu = (req, res) => {
+  const id = req.params.id;
+  connection.query(`
+  SELECT id, nom, contenu, ordre, id_formation
+  FROM section
+  WHERE id_formation = ?
+  ORDER BY ordre
+  `,
+    [id],
+    (err, results) => {
+      if (err) {
+        res.status(500).json({ error: err.message });
+      } else if (results.length === 0) {
+        res.status(404).json({ error: "Contenu non trouvé" });
+      } else {
+        const data = results.map(({ nom, contenu }) => ({ nom, contenu }));
+        res.status(200).json(data);
+      }
+    }
+  );
+}
