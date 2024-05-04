@@ -1,0 +1,20 @@
+name: Create vercel preview URL on pull request
+on:
+  pull_request:
+    branches:
+      - develop
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: amondnet/vercel-action@v25
+        id: vercel-deploy
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }} # Required
+          vercel-args: '--prod' #Optional
+          vercel-org-id: ${{ secrets.ORG_ID}}  #Required
+          vercel-project-id: ${{ secrets.PROJECT_ID}} #Required 
+          alias-domains: | #Optional
+            staging.angular.vercel-action.amond.dev
+            pr-{{PR_NUMBER}}.angular.vercel-action.amond.dev
