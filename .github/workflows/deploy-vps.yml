@@ -12,16 +12,12 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-    - name: Configure SSH agent
-      run: |
-        eval $(ssh-agent -s)
-        ssh-add $GITHUB_WORKSPACE/private_key
     - name: executing remote ssh commands using ssh key
       uses: appleboy/ssh-action@v1.0.3
       with:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USERNAME }}
-        agent: true
+        key: ${{ secrets.PRIVATE_KEY }}
         script: |
           cd /home/debian/DOCKER/skillminer
           sh script.sh
