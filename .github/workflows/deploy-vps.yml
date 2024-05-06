@@ -7,14 +7,17 @@ on:
     branches: [ "develop" ]
 
 jobs:
-  deploy:
-    runs-on: self-hosted
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
 
-      - name: Deploy to VPS
-        uses: sidikfaha/deploy-docker@v1.0.1
-        with:
-          docker_compose_file: docker-compose.yml
-          docker_compose_command: up -d
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+    - name: executing remote ssh commands using ssh key
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.PRIVATE_KEY }}
+        script: |
+          cd /home/debian/DOCKER/skillminer
+          sh script.sh
