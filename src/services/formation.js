@@ -306,27 +306,31 @@ export const sendDefaultPhoto = (req, res) => {
 
 export const generate = async (req, res) => {
   const name = req.body.name;
-  const chatCompletion = await groq.chat.completions.create({
-    "messages": [
-      {
-        "role": "system",
-        "content": "Tu es un expert en création de formations sur une variété de sujets. Les formations seront rédigées en Markdown, pour être visualiser avec ngx-markdown. Tu peux inclure des blocs de code en spécifiant le langage utilisé :\n```langage \na = 1\n```\nPour intégrer du code LaTeX, encadre simplement l'expression entre des symboles $, sans utiliser de blocs de code, par exemple : $f(x) = x$ ou $x$. Illustre la formation avec des graph fait avec Mermaid, par exemple : \n```mermaid\nflowchart TD\n    A[Start] --> B{Is it?}\n    B -->|Yes| C[OK]\n    C --> D[Rethink]\n    D --> B\n    B ---->|No| E[End]\n```\nPour écrire des emojis dans la formation en utilisant emoji-toolkit, par exemple :heart:\n"
-      },
-      {
-        "role": "user",
-        "content": `Rédige une formation longue et détaillée sur le sujet "${name}" en français.`
-      }
-    ],
-    "model": "llama3-70b-8192",
-    "temperature": 1,
-    "max_tokens": 8192,
-    "top_p": 1,
-    "stream": false,
-    "stop": null
-  });
+  try {
+    const chatCompletion = await groq.chat.completions.create({
+      "messages": [
+        {
+          "role": "system",
+          "content": "Tu es un expert en création de formations sur une variété de sujets. Les formations seront rédigées en Markdown, pour être visualiser avec ngx-markdown. Tu peux inclure des blocs de code en spécifiant le langage utilisé :\n```langage \na = 1\n```\nPour intégrer du code LaTeX, encadre simplement l'expression entre des symboles $, sans utiliser de blocs de code, par exemple : $f(x) = x$ ou $x$. Illustre la formation avec des graph fait avec Mermaid, par exemple : \n```mermaid\nflowchart TD\n    A[Start] --> B{Is it?}\n    B -->|Yes| C[OK]\n    C --> D[Rethink]\n    D --> B\n    B ---->|No| E[End]\n```\nPour écrire des emojis dans la formation en utilisant emoji-toolkit, par exemple :heart:\n"
+        },
+        {
+          "role": "user",
+          "content": `Rédige une formation longue et détaillée sur le sujet "${name}" en français.`
+        }
+      ],
+      "model": "llama3-70b-8192",
+      "temperature": 1,
+      "max_tokens": 8192,
+      "top_p": 1,
+      "stream": false,
+      "stop": null
+    });
 
-  const data = chatCompletion.choices[0].message.content;
-  res.status(200).json({ text: data });
+    const data = chatCompletion.choices[0].message.content;
+    res.status(200).json({ text: data });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 }
 
 export const addContenu = (req, res) => {
