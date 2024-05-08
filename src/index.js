@@ -7,6 +7,7 @@ import fs from "fs";
 import multer from "multer";
 import http from "http";
 import https from "https";
+import { Server } from "socket.io";
 
 import { auth } from "./middleware/authentication.js";
 import { limitOffset } from "./middleware/limitOffset.js";
@@ -74,21 +75,34 @@ app.use("/file/formations", express.static("public/formations"), formation.sendD
 app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerFile));
 app.use((req, res) => res.status(404).send({ error: "Page non trouvée" }));
 
+let server;
 if (process.env.ENVIRONMENT === "production") {
   const ssl_certificate_key = fs.readFileSync(process.env.SSL_KEY, "utf8");
   const ssl_certificate = fs.readFileSync(process.env.SSL_CERT, "utf8");
   const credentials = { key: ssl_certificate_key, cert: ssl_certificate };
-  const httpsServer = https.createServer(credentials, app);
-  httpsServer.listen(PORT, () => {
+  server = https.createServer(credentials, app);
+  server.listen(PORT, () => {
     console.log(
       `Serveur en cours d'exécution sur le port ${PORT}, documentation ${URL_BACK}/swagger with prod`
     );
   });
 } else {
-  const httpServer = http.createServer(app);
-  httpServer.listen(PORT, () => {
+  server = http.createServer(app);
+  server.listen(PORT, () => {
     console.log(
       `Serveur en cours d'exécution sur le port ${PORT}, documentation ${URL_BACK}/swagger with dev`
     );
   });
 }
+
+const io = new Server(server);
+io.on("connection", (socket) => {
+  socket.on("mousemove", ({ top, left }) => {
+    socket.broadcast.emit("mousemove", { top, left });
+  });
+
+
+  socket.on("disconnect", () => {
+    console.log("user disconnected");
+  });
+});
