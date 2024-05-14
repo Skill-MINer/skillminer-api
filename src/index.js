@@ -95,10 +95,10 @@ if (process.env.ENVIRONMENT === "production") {
   });
 }
 
-const io = new Server(server);
+const io = new Server(server, { cors: { origin: "*" } });
 io.on("connection", (socket) => {
-  socket.on("mousemove", ({ top, left }) => {
-    socket.broadcast.emit("mousemove", { top, left });
+  socket.on("cursor", ({ top, left }) => {
+    socket.broadcast.emit("cursor", { top, left });
   });
 
 
