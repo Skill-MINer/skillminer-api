@@ -44,7 +44,7 @@ app.use(cors(corsOptions), bodyParser.json());
 app.get("/", (req, res) => {
   res.send(`API de SkillMINER, documentation ${URL_BACK}/swagger`);
 });
-
+app.get("/ping", (req, res) => res.send("pong"));
 app.post("/login", login.login);
 app.post("/reset-request", login.resetRequest);
 app.post("/reset-password", login.resetPassword);
@@ -79,7 +79,7 @@ app.delete("/file/users", auth, user.deletePhoto);
 app.use("/file/formations", express.static("public/formations"), formation.sendDefaultPhoto);
 
 app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerFile));
-app.get("/ping", (req, res) => res.send("pong"));
+
 // app.use((req, res) => res.status(404).send({ error: "Page non trouvée" }));
 
 let server;
