@@ -97,12 +97,24 @@ if (process.env.ENVIRONMENT === "production") {
 
 const io = new Server(server, { cors: { origin: "*" } });
 io.on("connection", (socket) => {
-  socket.on("cursor", ({ top, left }) => {
-    socket.broadcast.emit("cursor", { top, left });
+  let m_room_id = "";
+
+  console.log("a user connected");
+
+  socket.on("connection-to-room", ({room_id}) => {
+    console.log("connection-to-room", room_id);
+    m_room_id = room_id;
+    console.log("user connected to room", m_room_id);
+    socket.join(m_room_id);
   });
 
+  socket.on("cursor", ({ top, left }) => {
+    console.log("cursor", top, left);
+    socket.to(m_room_id).emit("cursor", { top, left });
+  });
 
   socket.on("disconnect", () => {
+    socket.leave(m_room_id);
     console.log("user disconnected");
   });
 });
