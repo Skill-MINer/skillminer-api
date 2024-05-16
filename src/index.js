@@ -79,7 +79,7 @@ app.delete("/file/users", auth, user.deletePhoto);
 app.use("/file/formations", express.static("public/formations"), formation.sendDefaultPhoto);
 
 app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerFile));
-app.use((req, res) => res.status(404).send({ error: "Page non trouvée" }));
+//app.use((req, res) => res.status(404).send({ error: "Page non trouvée" }));
 
 let server;
 if (process.env.ENVIRONMENT === "production") {
