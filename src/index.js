@@ -45,6 +45,7 @@ app.post("/reset-password", login.resetPassword);
 app.get("/token-info", auth, login.tokenInfo);
 
 app.get("/users", auth, limitOffset, user.findAll);
+app.get("/users/formations", auth, formation.findByUser);
 app.get("/users/:id", auth, user.findById);
 app.post("/users", user.add);
 app.put("/users/password", auth, user.updatePassword);

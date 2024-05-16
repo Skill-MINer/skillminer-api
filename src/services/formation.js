@@ -399,3 +399,28 @@ export const getContenu = (req, res) => {
     }
   );
 }
+
+export const findByUser = (req, res) => {
+  const id_user = req.id;
+  connection.query(`
+  SELECT formation.id, titre, formation.description, date_creation,
+  JSON_OBJECT('id', user.id, 'nom', user.nom, 'prenom', user.prenom) as user,
+  IF(COUNT(tag.id) > 0, 
+    JSON_ARRAYAGG(JSON_OBJECT('id', tag.id, 'nom', tag.nom)), JSON_ARRAY()) as tag 
+  FROM formation
+  INNER JOIN user ON formation.id_user = user.id
+  LEFT JOIN posseder ON formation.id = posseder.id
+  LEFT JOIN tag ON posseder.id_tag = tag.id
+  WHERE formation.id_user = ?
+  GROUP BY formation.id
+  `, [id_user], (err, results) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      } else if (results.length === 0) {
+        return res.status(404).json({ error: "Formation(s) non trouvée(s)" });
+      } else {
+        return res.status(200).json(results);
+      }
+    }
+  );
+}
