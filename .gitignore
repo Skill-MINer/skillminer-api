@@ -5,3 +5,5 @@ src/swagger/swagger-output.json
 public/*/*.png
 !public/*/default.png
 .vercel
+
+pnpm-lock.yaml
