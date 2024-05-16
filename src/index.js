@@ -107,7 +107,7 @@ const io = new Server(server, { cors: { origin: "*" } });
   
 // });
 
-io.on("connection", async (socket) => {
+io.on("connection", (socket) => {
   let m_room_id = "";
   let m_user_id = "";
   let m_user_name = "";
