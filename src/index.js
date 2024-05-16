@@ -115,7 +115,6 @@ io.on("connection", async (socket) => {
   console.log("a user connected");
 
   socket.on("connection-to-room", ({token, room_id}) => {
-    console.log(token);
     if (!token) {
       return new Error("Accès non autorisé. Token manquant.");
     }
@@ -142,7 +141,6 @@ io.on("connection", async (socket) => {
   });
 
   socket.on("cursor", ({ top, left }) => {
-    console.log(m_user_id)
     socket.to(m_room_id).emit("cursor", {
        id: m_user_id,
        name: m_user_name,
