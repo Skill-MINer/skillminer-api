@@ -7,6 +7,10 @@ import fs from "fs";
 import multer from "multer";
 import http from "http";
 import https from "https";
+import { Server } from "socket.io";
+import jwt from "jsonwebtoken";
+
+import connection from './database/database.js';
 
 import { auth } from "./middleware/authentication.js";
 import { limitOffset } from "./middleware/limitOffset.js";
@@ -17,6 +21,8 @@ import * as user from "./services/user.js";
 
 
 dotenv.config();
+
+const secretKey = process.env.SECRET_KEY;
 
 const swaggerFile = JSON.parse(
   fs.readFileSync("./src/swagger/swagger-output.json", "utf-8")
@@ -75,21 +81,78 @@ app.use("/file/formations", express.static("public/formations"), formation.sendD
 app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerFile));
 app.use((req, res) => res.status(404).send({ error: "Page non trouvée" }));
 
+let server;
 if (process.env.ENVIRONMENT === "production") {
   const ssl_certificate_key = fs.readFileSync(process.env.SSL_KEY, "utf8");
   const ssl_certificate = fs.readFileSync(process.env.SSL_CERT, "utf8");
   const credentials = { key: ssl_certificate_key, cert: ssl_certificate };
-  const httpsServer = https.createServer(credentials, app);
-  httpsServer.listen(PORT, () => {
+  server = https.createServer(credentials, app);
+  server.listen(PORT, () => {
     console.log(
       `Serveur en cours d'exécution sur le port ${PORT}, documentation ${URL_BACK}/swagger with prod`
     );
   });
 } else {
-  const httpServer = http.createServer(app);
-  httpServer.listen(PORT, () => {
+  server = http.createServer(app);
+  server.listen(PORT, () => {
     console.log(
       `Serveur en cours d'exécution sur le port ${PORT}, documentation ${URL_BACK}/swagger with dev`
     );
   });
 }
+
+const io = new Server(server, { cors: { origin: "*" } });
+
+// io.use((socket, next) => {
+  
+// });
+
+io.on("connection", async (socket) => {
+  let m_room_id = "";
+  let m_user_id = "";
+  let m_user_name = "";
+
+  console.log("a user connected");
+
+  socket.on("connection-to-room", ({token, room_id}) => {
+    console.log(token);
+    if (!token) {
+      return new Error("Accès non autorisé. Token manquant.");
+    }
+    jwt.verify(token, secretKey, (err, decoded) => {
+      if (err) {
+        return new Error("Accès non autorisé. Token invalide.");
+      }
+      m_user_id = decoded.id;
+    });
+    connection.query(`
+    SELECT id, nom, prenom, email, description, date_inscription 
+    FROM user WHERE id = ?`,
+    [m_user_id], (err, results) => {
+      if (err) {
+        throw new Error(err.message);
+      } else if (results.length === 0) {
+        throw new Error("Utilisateur non trouvé ou non autorisé");
+      } else {
+        m_user_name = results[0].prenom + " " + results[0].nom;
+      }
+    });
+    m_room_id = room_id;
+    socket.join(m_room_id);
+  });
+
+  socket.on("cursor", ({ top, left }) => {
+    console.log(m_user_id)
+    socket.to(m_room_id).emit("cursor", {
+       id: m_user_id,
+       name: m_user_name,
+       top,
+       left 
+      });
+  });
+
+  socket.on("disconnect", () => {
+    socket.leave(m_room_id);
+    console.log("user disconnected");
+  });
+});
