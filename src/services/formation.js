@@ -327,7 +327,7 @@ export const generate = async (req, res) => {
     });
 
     const data = chatCompletion.choices[0].message.content;
-    res.status(200).json({ text: data });
+    res.status(200).json({ type:'markdown', text: data });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
