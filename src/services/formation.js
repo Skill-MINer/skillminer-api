@@ -94,47 +94,124 @@ export const findById = (req, res) => {
   );
 };
 
-export const add = async (req, res) => {
-  const { titre, description, tags } = req.body;
+export const add = (req, res) => {
   const id_user = req.id;
-  if (!titre || !description) {
-    return res.status(400).json({ error: "Body invalide" });
-  }
   const dateCreation = new Date();
 
-  connection.query(
-    `
-  INSERT INTO formation (titre, description, date_creation, id_user) 
-  VALUES (?, ?, ?, ?)`,
-    [titre, description, dateCreation, id_user],
+  connection.query("INSERT INTO formation (titre, description, date_creation, id_user) VALUES ('', '', ?, ?)",
+    [dateCreation, id_user], (err, results) => {
+      if (err) {
+        res.status(500).json({ error: err.message });
+      } else {
+        res.status(201).json({ id: results.insertId, date_creation: dateCreation });
+      }
+    });
+};
+
+
+export const addContributors = (req, res) => {
+  const id_new_user = req.body.id_user;
+  const id_user = req.id;
+  const id_formation = req.params.id;
+  if (isNaN(id_new_user) || isNaN(id_formation)) {
+    return res.status(400).json({ error: "ID invalide" });
+  }
+  connection.query(`SELECT id FROM formation WHERE id = ? AND id_user = ?`, [id_formation, id_user], (err, results) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+    } else if (results.length === 0) {
+      res.status(401).json({ error: "Utilisateur non autorisé ou formation non trouvée" });
+    } else {
+      connection.query(`
+      INSERT INTO moderer (id, id_formation) VALUES (?, ?)`,
+        [id_new_user, id_formation],
+        (err, results) => {
+          if (err) {
+            res.status(500).json({ error: err.message });
+          } else {
+            res.status(201).json({ message: "Utilisateur ajouté" });
+          }
+        }
+      );
+    }
+  }
+  );
+};
+
+export const getContributors = (req, res) => {
+  const id_formation = req.params.id;
+  connection.query(`
+  SELECT user.id, nom, prenom 
+  FROM user 
+  LEFT JOIN moderer ON user.id = moderer.id
+  WHERE id_formation = ?
+  GROUP BY user.id
+  `, [id_formation], (err, results) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+    } else if (results.length === 0) {
+      res.status(404).json({ error: "Aucun contributeur trouvé" });
+    } else {
+      res.status(200).json(results);
+    }
+  });
+}
+
+
+
+export const addHeader = async (req, res) => {
+  const { titre, description, tag } = req.body;
+  const idFormation = req.params.id;
+  const idUser = req.id;
+  if (!titre || !description || isNaN(idFormation)) {
+    return res.status(400).json({ error: "Data invalide" });
+  }
+
+  connection.query(`
+  UPDATE formation
+  SET 
+    titre = :titre,
+    description = :description
+  WHERE id = :idFormation AND id_user = :idUser`,
+    { titre, description, idUser, idFormation },
     (err, results) => {
       if (err) {
         res.status(500).json({ error: err.message });
       } else {
-        const formationId = results.insertId;
-        if (tags && tags.length > 0) {
-          const tagValues = tags.map((tagId) => [formationId, tagId]);
-          connection.query(
-            `
-            INSERT INTO posseder (id, id_tag) 
-            VALUES ?`,
-            [tagValues],
-            (err, results) => {
-              if (err) {
-                res
-                  .status(500)
-                  .json({
-                    error: err.message,
-                    error_tag: "Erreur lors de l'ajout des tags",
-                  });
+        connection.query(`
+        DELETE FROM posseder
+        WHERE id = :idFormation`,
+          { idFormation },
+          (err, results) => {
+            if (err) {
+              res.status(500).json({ error: err.message });
+            } else {
+              if (tag && tag.length > 0) {
+                const tagValues = tag.map((tagId) => [idFormation, tagId]);
+                connection.query(
+                  `
+                  INSERT INTO posseder (id, id_tag) 
+                  VALUES ?`,
+                  [tagValues],
+                  (err, results) => {
+                    if (err) {
+                      res
+                        .status(500)
+                        .json({
+                          error: err.message,
+                          error_tag: "Erreur lors de l'ajout des tags",
+                        });
+                    } else {
+                      res.status(201).json();
+                    }
+                  }
+                );
               } else {
-                res.status(201).json({ id: formationId });
+                res.status(201).json();
               }
             }
-          );
-        } else {
-          res.status(201).json({ id: formationId });
-        }
+          }
+        );
       }
     }
   );
@@ -327,7 +404,7 @@ export const generate = async (req, res) => {
     });
 
     const data = chatCompletion.choices[0].message.content;
-    res.status(200).json({ type:'markdown', text: data });
+    res.status(200).json({ type: 'markdown', text: data });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -384,17 +461,17 @@ export const getContenu = (req, res) => {
           WHERE id_formation = ?
           ORDER BY ordre
           `, [id],
-            (err, results) => {
-              if (err) {
-                res.status(500).json({ error: err.message });
-              } else if (results.length === 0) {
-                res.status(404).json({ error: "Contenu non trouvé" });
-              } else {
-                data.body = results.map(({ id, nom, contenu }) => ({ id, nom, contenu }));
-                res.status(200).json(data);
-              }
+          (err, results) => {
+            if (err) {
+              res.status(500).json({ error: err.message });
+            } else if (results.length === 0) {
+              res.status(404).json({ error: "Contenu non trouvé" });
+            } else {
+              data.body = results.map(({ id, nom, contenu }) => ({ id, nom, contenu }));
+              res.status(200).json(data);
             }
-          );
+          }
+        );
       }
     }
   );
@@ -414,13 +491,13 @@ export const findByUser = (req, res) => {
   WHERE formation.id_user = ?
   GROUP BY formation.id
   `, [id_user], (err, results) => {
-      if (err) {
-        return res.status(500).json({ error: err.message });
-      } else if (results.length === 0) {
-        return res.status(404).json({ error: "Formation(s) non trouvée(s)" });
-      } else {
-        return res.status(200).json(results);
-      }
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    } else if (results.length === 0) {
+      return res.status(404).json({ error: "Formation(s) non trouvée(s)" });
+    } else {
+      return res.status(200).json(results);
     }
+  }
   );
 }
