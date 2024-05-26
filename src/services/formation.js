@@ -103,7 +103,7 @@ export const add = (req, res) => {
       if (err) {
         res.status(500).json({ error: err.message });
       } else {
-        res.status(201).json({ id: results.insertId, date_creation: dateCreation });
+        res.status(201).json({ id: results.insertId });
       }
     });
 };
