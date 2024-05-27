@@ -502,3 +502,26 @@ export const findByUser = (req, res) => {
   }
   );
 }
+
+export const publish = (req, res) => {
+  const id_formation = req.params.id;
+  const id_user = req.id;
+  let publier = req.body.publier;
+  if (!(typeof publier === "boolean" || publier === 1 || publier === 0)) {
+    return res.status(400).json({ error: "Body invalide" });
+  }
+  publier = Boolean(publier);
+  connection.query(`
+  UPDATE formation
+  SET publier = :publier
+  WHERE id = :id_formation AND id_user = :id_user
+  `, { publier, id_formation, id_user }, (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    } else if (results.affectedRows === 0) {
+      return res.status(401).json({ error: "Utilisateur non autorisé ou formation non trouvée" });
+    } else {
+      return res.status(200).json({ message: "Publication modifiée" });
+    }
+  });
+}

@@ -50,9 +50,9 @@ app.post("/reset-request", login.resetRequest);
 app.post("/reset-password", login.resetPassword);
 app.get("/token-info", auth, login.tokenInfo);
 
-app.get("/users", auth, limitOffset, user.findAll);
+app.get("/users", auth, limitOffset, user.findAll); // non utilisé
 app.get("/users/formations", auth, formation.findByUser);
-app.get("/users/:id", auth, user.findById);
+app.get("/users/:id", auth, user.findById); // non utilisé
 app.post("/users", user.add);
 app.put("/users/password", auth, user.updatePassword);
 app.patch("/users", auth, user.update);
@@ -66,14 +66,16 @@ app.get("/formations/:id/contributors", formation.getContributors);
 app.put("/formations/:id/header", auth, formation.addHeader);
 app.put("/formations/:id/contenu", auth, formation.addContenu);
 app.get("/formations/:id/contenu", formation.getContenu);
+app.put("/formations/:id/publier", auth, formation.publish);
 app.post("/formations/generate", auth, formation.generate);
-app.patch("/formations/:id", auth, formation.update);
-app.delete("/formations/:id", auth, formation.deleteFormation);
-app.post("/formations/:id/tags", auth, formation.addTags);
-app.delete("/formations/:id/tags", auth, formation.removeTag);
+
+app.patch("/formations/:id", auth, formation.update); // non utilisé
+app.delete("/formations/:id", auth, formation.deleteFormation); // non utilisé
+app.post("/formations/:id/tags", auth, formation.addTags); // non utilisé
+app.delete("/formations/:id/tags", auth, formation.removeTag); // non utilisé
 
 app.get("/tags", auth, tag.findAll);
-app.post("/tags", auth, tag.add);
+app.post("/tags", auth, tag.add); // non utilisé
 
 app.post("/file/users", auth, uploadUser.single("file"), user.uploadPhoto);
 app.post("/file/formations/:id", auth, uploadFormation.single("file"), formation.uploadPhoto);
