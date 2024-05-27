@@ -465,8 +465,6 @@ export const getContenu = (req, res) => {
           (err, results) => {
             if (err) {
               res.status(500).json({ error: err.message });
-            } else if (results.length === 0) {
-              res.status(404).json({ error: "Contenu non trouvé" });
             } else {
               data.body = results.map(({ id, nom, contenu }) => ({ id, nom, contenu }));
               res.status(200).json(data);
