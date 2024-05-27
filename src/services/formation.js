@@ -34,7 +34,7 @@ export const findAll = (req, res) => {
 
   connection.query(
     `
-  SELECT DISTINCT formation.id, titre, formation.description, date_creation,
+  SELECT DISTINCT formation.id, titre, formation.description, date_creation, formation.publier,
     JSON_OBJECT('id', user.id, 'nom', user.nom, 'prenom', user.prenom) as user,
     IF(COUNT(tag.id) > 0, 
       JSON_ARRAYAGG(JSON_OBJECT('id', tag.id, 'nom', tag.nom)), JSON_ARRAY()) as tag
@@ -45,6 +45,7 @@ export const findAll = (req, res) => {
   WHERE 
     ${nbTags > 0 ? tagQuery : ""} 
     (:titre IS NULL OR MATCH(titre) AGAINST(:titre IN BOOLEAN MODE))
+    AND formation.publier = 1
   GROUP BY formation.id 
   ORDER BY MATCH(titre) AGAINST(:titre IN BOOLEAN MODE) DESC 
   LIMIT :limit 
