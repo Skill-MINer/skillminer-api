@@ -154,6 +154,34 @@ io.on("connection", (socket) => {
       });
   });
 
+  socket.on("edit", (data) => {
+    socket.to(m_room_id).emit("edit", data);
+  });
+
+  socket.on("moveBlock", (data) => {
+    socket.to(m_room_id).emit("moveBlock", data);
+  });
+
+  socket.on("addBlockMD", (data) => {
+    socket.to(m_room_id).emit("addBlockMD", data);
+  });
+
+  socket.on("editTitle", (data) => {
+    socket.to(m_room_id).emit("editTitle", data);
+  });
+
+  socket.on("movePage", (data) => {
+    socket.to(m_room_id).emit("movePage", data);
+  });
+
+  socket.on("editPageTitle", (data) => {
+    socket.to(m_room_id).emit("editPageTitle", data);
+  });
+
+  socket.on("addPage", (data) => {
+    socket.to(m_room_id).emit("addPage", data);
+  });
+
   socket.on("disconnect", () => {
     socket.leave(m_room_id);
     console.log("user disconnected");
