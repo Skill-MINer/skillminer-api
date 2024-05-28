@@ -130,7 +130,7 @@ io.on("connection", (socket) => {
       m_user_id = decoded.id;
     });
     connection.query(`
-    SELECT id, nom, prenom, email, description, date_inscription 
+    SELECT id, prenom
     FROM user WHERE id = ?`,
     [m_user_id], (err, results) => {
       if (err) {
@@ -138,7 +138,7 @@ io.on("connection", (socket) => {
       } else if (results.length === 0) {
         throw new Error("Utilisateur non trouvé ou non autorisé");
       } else {
-        m_user_name = results[0].prenom + " " + results[0].nom;
+        m_user_name = results[0].prenom;
       }
     });
     m_room_id = room_id;
