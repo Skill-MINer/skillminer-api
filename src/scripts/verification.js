@@ -4,9 +4,9 @@ export const verifyEmail = (email) => {
   return emailRegex.test(email);
 };
 
-// Minimum eight characters, at least one letter, one number and one special character
+// Minimum 12 characters, at least one upper case letter, one lower case letter, one number and one special character
 export const verifyPassword = (password) => {
   const passwordRegex =
-    /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$/;
+    /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[ !"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]).{12,}$/;
   return passwordRegex.test(password);
 };

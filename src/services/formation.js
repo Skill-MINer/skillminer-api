@@ -411,37 +411,32 @@ export const generate = async (req, res) => {
   }
 }
 
-export const addContenu = (req, res) => {
+export const putContenu = (req, res) => {
   const id = req.params.id;
   const id_user = req.id;
   const contenus = req.body;
   if (!contenus || !Array.isArray(contenus)) {
     return res.status(400).json({ error: "Body invalide" });
   }
-  let ordre = 0;
 
-  contenus.forEach(({ nom, contenu }) => {
-    const contenuString = JSON.stringify(contenu);
-    connection.query(`
-    INSERT INTO section (nom, contenu, ordre, id_formation)
-    SELECT :nom, :contenu, :ordre, :id 
-    FROM formation
-    WHERE id = :id AND id_user = :id_user
-    `,
-      { id, contenu: contenuString, nom, ordre, id_user },
-      (err, results) => {
-        if (err) {
-          return res.status(500).json({ error: err.message });
-        } else if (results.affectedRows === 0) {
-          return res
-            .status(401)
-            .json({ error: "Utilisateur non autorisé ou formation non trouvée" });
+  connection.query("DELETE FROM section WHERE id_formation = ?", [id], (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    } else {
+      const values = contenus.map(({ nom, contenu }, index) => [nom, JSON.stringify(contenu), index, id]);
+      connection.query(
+        "INSERT INTO section (nom, contenu, ordre, id_formation) VALUES ?",
+        [values],
+        (err, results) => {
+          if (err) {
+            return res.status(500).json({ error: err.message });
+          } else {
+            return res.status(201).json({ message: "Contenu ajouté" });
+          }
         }
-      }
-    );
-    ordre++;
+      );
+    }
   });
-  return res.status(201).json({ message: "Contenu ajouté" });
 }
 
 export const getContenu = (req, res) => {
