@@ -143,6 +143,11 @@ io.on("connection", (socket) => {
     });
     m_room_id = room_id;
     socket.join(m_room_id);
+    socket.to(m_room_id).emit("getFormationData");
+  });
+
+  socket.on("setFormationData", (data) => {
+    socket.to(m_room_id).emit("setFormationData", data);
   });
 
   socket.on("cursor", ({ top, left }) => {
@@ -180,6 +185,10 @@ io.on("connection", (socket) => {
 
   socket.on("addPage", (data) => {
     socket.to(m_room_id).emit("addPage", data);
+  });
+
+  socket.on("addVideoBlock", (data) => {
+    socket.to(m_room_id).emit("addVideoBlock", data);
   });
 
   socket.on("disconnect", () => {
