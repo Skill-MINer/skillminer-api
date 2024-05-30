@@ -187,8 +187,8 @@ io.on("connection", (socket) => {
     socket.to(m_room_id).emit("addPage", data);
   });
 
-  socket.on("addVideoBlock", (data) => {
-    socket.to(m_room_id).emit("addVideoBlock", data);
+  socket.on("addBlockVideo", (data) => {
+    socket.to(m_room_id).emit("addBlockVideo", data);
   });
 
   socket.on("disconnect", () => {
