@@ -393,11 +393,11 @@ export const generate = async (req, res) => {
         {
           role: "system",
           content:
-            "Tu es un expert en création de formations sur une variété de sujets. Les formations seront rédigées en Markdown, pour être visualiser avec ngx-markdown. Tu peux inclure des blocs de code en spécifiant le langage utilisé :\n```langage \na = 1\n```\nPour intégrer du code LaTeX, encadre simplement l'expression entre des symboles $, sans utiliser de blocs de code, par exemple : $f(x) = x$ ou $x$. Illustre la formation avec des graph fait avec Mermaid, par exemple : \n```mermaid\nflowchart TD\n    A[Start] --> B{Is it?}\n    B -->|Yes| C[OK]\n    C --> D[Rethink]\n    D --> B\n    B ---->|No| E[End]\n```\nPour écrire des emojis dans la formation en utilisant emoji-toolkit, par exemple :heart:\n",
+            "Tu es un expert en création de formations sur tout les sujets. Rédige les formations en Markdown, écrit en faisant un titre Markdown de niveau 1 puis des titres Markdown de niveau 2.",
         },
         {
           role: "user",
-          content: `Rédige une formation longue et détaillée sur le sujet "${name}" en français.`,
+          content: `Rédige une formation longue et détaillée sur le sujet "${name}" en français. Tu peux inclure des blocs de code en spécifiant le langage utilisé :\n\`\`\`langage \na = 1\n\`\`\`\nPour intégrer du code LaTeX, encadre simplement l'expression entre des symboles $, sans utiliser de blocs de code, par exemple : $f(x) = x$ ou $x$. Tu peux illustrer la formation avec des graph fait avec Mermaid, par exemple : \n\`\`\`mermaid\nflowchart TD\n    A[Start] --> B{Is it?}\n    B -->|Yes| C[OK]\n    C --> D[Rethink]\n    D --> B\n    B ---->|No| E[End]\n\`\`\`\nTu peux écrire des emojis dans la formation en utilisant emoji-toolkit, par exemple :heart:\n Ne met pas de = ou - sous les titres.`,
         },
       ],
       model: "llama3-70b-8192",
@@ -407,99 +407,71 @@ export const generate = async (req, res) => {
       stream: false,
       stop: null,
     });
-    // on a un tableau de pages dans data
-    const message = splitMarkdownByHeadings(
+    
+    const message = parseMarkdownToJSON(
       chatCompletion.choices[0].message.content
     );
-    console.log(message);
     if (message.length === 0) {
       return res.status(400).json({ error: "Erreur lors de la génération" });
     }
-    res.status(200).json(message);
+    res.status(200).json([message]);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-function splitMarkdownByHeadings(markdown) {
-  const regex = /^(#+)\s+(.*)/gm;
-  const pages = [];
-  let match;
-  let lastIndex = 0;
+function parseMarkdownToJSON(markdown) {
+  // Split markdown into lines
+  const lines = markdown.split('\n');
 
-  let currentPage = null;
-  let blockId = 1;
+  // Initialize the JSON structure
+  const json = {
+      id: 1,
+      nom: "",
+      contenu: []
+  };
 
-  while ((match = regex.exec(markdown)) !== null) {
-    const headingLevel = match[1].length;
-    const headingText = match[2];
-    const startIndex = match.index;
-    const endIndex = regex.lastIndex;
+  let currentSection = null;
 
-    if (headingLevel === 1) {
-      if (currentPage) {
-        if (lastIndex < startIndex) {
-          const blockContent = markdown.substring(lastIndex, startIndex).trim();
-          if (blockContent) {
-            blockId++;
-            currentPage.contenu.push({
-              id: blockId,
-              title: headingText,
-              contenu: {
-                id: blockId,
-                type: "markdown",
-                text: blockContent,
-              },
-            });
+  lines.forEach(line => {
+      // Check for main title (H1)
+      if (/^# .+/.test(line)) {
+          json.nom = line.replace(/^# /, '').trim();
+      }
+
+      // Check for section titles (H2)
+      else if (/^## .+/.test(line)) {
+          if (currentSection) {
+              json.contenu.push(currentSection);
           }
-        }
-        pages.push(currentPage);
+          currentSection = {
+              id: json.contenu.length + 1,
+              title: line.replace(/^## /, '').trim(),
+              contenu: {
+                  id: json.contenu.length + 1,
+                  text: "",
+                  type: "markdown"
+              }
+          };
       }
 
-      currentPage = {
-        id: pages.length + 1,
-        nom: headingText,
-        contenu: [],
-      };
-    } else if (headingLevel === 2 && currentPage) {
-      if (lastIndex < startIndex) {
-        const blockContent = markdown.substring(lastIndex, startIndex).trim();
-        if (blockContent) {
-          blockId++;
-          currentPage.contenu.push({
-            id: blockId,
-            title: headingText,
-            contenu: {
-              id: blockId,
-              type: "markdown",
-              text: blockContent,
-            },
-          });
-        }
+      // Capture content under H2 sections
+      else if (currentSection) {
+          currentSection.contenu.text += line + '\n';
       }
-      lastIndex = endIndex;
-    }
+  });
+
+  // Push the last section if exists
+  if (currentSection) {
+      json.contenu.push(currentSection);
   }
 
-  if (currentPage) {
-    if (lastIndex < markdown.length) {
-      const blockContent = markdown.substring(lastIndex).trim();
-      if (blockContent) {
-        currentPage.contenu.push({
-          id: blockId++,
-          title: headingText,
-          contenu: {
-            id: blockId++,
-            type: "markdown",
-            text: blockContent,
-          },
-        });
-      }
-    }
-    pages.push(currentPage);
-  }
+  // Clean up whitespace
+  json.contenu.forEach(section => {
+      section.contenu.text = section.contenu.text.trim();
+  });
 
-  return pages;
+  return json;
 }
 
 export const putContenu = (req, res) => {
