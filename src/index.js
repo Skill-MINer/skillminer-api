@@ -191,6 +191,14 @@ io.on("connection", (socket) => {
     socket.to(m_room_id).emit("addBlockVideo", data);
   });
 
+  socket.on('deleteBlock', (data) => {
+    socket.to(m_room_id).emit('deleteBlock', data);
+  });
+
+  socket.on("deletePage", (data) => {
+    socket.to(m_room_id).emit("deletePage", data);
+  });
+
   socket.on("disconnect", () => {
     socket.leave(m_room_id);
     console.log("user disconnected");
