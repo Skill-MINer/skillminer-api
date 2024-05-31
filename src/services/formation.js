@@ -81,34 +81,33 @@ GROUP BY formation.id
 export const findById = (req, res) => {
   const id = req.params.id;
 
-  connection.query(findByIdQuery,
-    [id],
-    (err, results) => {
-      if (err) {
-        res.status(500).json({ error: err.message });
-      } else if (results.length === 0) {
-        res.status(404).json({ error: "Formation(s) non trouvée(s)" });
-      } else {
-        res.status(200).json(results[0]);
-      }
+  connection.query(findByIdQuery, [id], (err, results) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+    } else if (results.length === 0) {
+      res.status(404).json({ error: "Formation(s) non trouvée(s)" });
+    } else {
+      res.status(200).json(results[0]);
     }
-  );
+  });
 };
 
 export const add = (req, res) => {
   const id_user = req.id;
   const dateCreation = new Date();
 
-  connection.query("INSERT INTO formation (titre, description, date_creation, id_user) VALUES ('', '', ?, ?)",
-    [dateCreation, id_user], (err, results) => {
+  connection.query(
+    "INSERT INTO formation (titre, description, date_creation, id_user) VALUES ('', '', ?, ?)",
+    [dateCreation, id_user],
+    (err, results) => {
       if (err) {
         res.status(500).json({ error: err.message });
       } else {
         res.status(201).json({ id: results.insertId });
       }
-    });
+    }
+  );
 };
-
 
 export const addContributors = (req, res) => {
   const id_new_user = req.body.id_user;
@@ -117,48 +116,56 @@ export const addContributors = (req, res) => {
   if (isNaN(id_new_user) || isNaN(id_formation)) {
     return res.status(400).json({ error: "ID invalide" });
   }
-  connection.query(`SELECT id FROM formation WHERE id = ? AND id_user = ?`, [id_formation, id_user], (err, results) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-    } else if (results.length === 0) {
-      res.status(401).json({ error: "Utilisateur non autorisé ou formation non trouvée" });
-    } else {
-      connection.query(`
+  connection.query(
+    `SELECT id FROM formation WHERE id = ? AND id_user = ?`,
+    [id_formation, id_user],
+    (err, results) => {
+      if (err) {
+        res.status(500).json({ error: err.message });
+      } else if (results.length === 0) {
+        res
+          .status(401)
+          .json({ error: "Utilisateur non autorisé ou formation non trouvée" });
+      } else {
+        connection.query(
+          `
       INSERT INTO moderer (id, id_formation) VALUES (?, ?)`,
-        [id_new_user, id_formation],
-        (err, results) => {
-          if (err) {
-            res.status(500).json({ error: err.message });
-          } else {
-            res.status(201).json({ message: "Utilisateur ajouté" });
+          [id_new_user, id_formation],
+          (err, results) => {
+            if (err) {
+              res.status(500).json({ error: err.message });
+            } else {
+              res.status(201).json({ message: "Utilisateur ajouté" });
+            }
           }
-        }
-      );
+        );
+      }
     }
-  }
   );
 };
 
 export const getContributors = (req, res) => {
   const id_formation = req.params.id;
-  connection.query(`
+  connection.query(
+    `
   SELECT user.id, nom, prenom 
   FROM user 
   LEFT JOIN moderer ON user.id = moderer.id
   WHERE id_formation = ?
   GROUP BY user.id
-  `, [id_formation], (err, results) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-    } else if (results.length === 0) {
-      res.status(404).json({ error: "Aucun contributeur trouvé" });
-    } else {
-      res.status(200).json(results);
+  `,
+    [id_formation],
+    (err, results) => {
+      if (err) {
+        res.status(500).json({ error: err.message });
+      } else if (results.length === 0) {
+        res.status(404).json({ error: "Aucun contributeur trouvé" });
+      } else {
+        res.status(200).json(results);
+      }
     }
-  });
-}
-
-
+  );
+};
 
 export const addHeader = async (req, res) => {
   const { titre, description, tag } = req.body;
@@ -168,7 +175,8 @@ export const addHeader = async (req, res) => {
     return res.status(400).json({ error: "Data invalide" });
   }
 
-  connection.query(`
+  connection.query(
+    `
   UPDATE formation
   SET 
     titre = :titre,
@@ -179,7 +187,8 @@ export const addHeader = async (req, res) => {
       if (err) {
         res.status(500).json({ error: err.message });
       } else {
-        connection.query(`
+        connection.query(
+          `
         DELETE FROM posseder
         WHERE id = :idFormation`,
           { idFormation },
@@ -196,12 +205,10 @@ export const addHeader = async (req, res) => {
                   [tagValues],
                   (err, results) => {
                     if (err) {
-                      res
-                        .status(500)
-                        .json({
-                          error: err.message,
-                          error_tag: "Erreur lors de l'ajout des tags",
-                        });
+                      res.status(500).json({
+                        error: err.message,
+                        error_tag: "Erreur lors de l'ajout des tags",
+                      });
                     } else {
                       res.status(201).json();
                     }
@@ -293,12 +300,10 @@ export const addTags = (req, res) => {
       if (err) {
         res.status(500).json({ error: err.message });
       } else if (results.affectedRows === 0) {
-        res
-          .status(401)
-          .json({
-            error:
-              "utilisateur non autorisé ou formation non trouvée ou tag déjà possédé ou tag non existant",
-          });
+        res.status(401).json({
+          error:
+            "utilisateur non autorisé ou formation non trouvée ou tag déjà possédé ou tag non existant",
+        });
       } else {
         res.status(201).json({ message: "Tag ajouté" });
       }
@@ -332,12 +337,10 @@ export const removeTag = (req, res) => {
       if (err) {
         res.status(500).json({ error: err.message });
       } else if (results.affectedRows === 0) {
-        res
-          .status(401)
-          .json({
-            error:
-              "Utilisateur non autorisé ou formation non trouvée ou le tag n'existe pas dans cette formation",
-          });
+        res.status(401).json({
+          error:
+            "Utilisateur non autorisé ou formation non trouvée ou le tag n'existe pas dans cette formation",
+        });
       } else {
         res.status(200).json({ message: "Tag supprimé de la formation" });
       }
@@ -386,29 +389,89 @@ export const generate = async (req, res) => {
   const name = req.body.name;
   try {
     const chatCompletion = await groq.chat.completions.create({
-      "messages": [
+      messages: [
         {
-          "role": "system",
-          "content": "Tu es un expert en création de formations sur une variété de sujets. Les formations seront rédigées en Markdown, pour être visualiser avec ngx-markdown. Tu peux inclure des blocs de code en spécifiant le langage utilisé :\n```langage \na = 1\n```\nPour intégrer du code LaTeX, encadre simplement l'expression entre des symboles $, sans utiliser de blocs de code, par exemple : $f(x) = x$ ou $x$. Illustre la formation avec des graph fait avec Mermaid, par exemple : \n```mermaid\nflowchart TD\n    A[Start] --> B{Is it?}\n    B -->|Yes| C[OK]\n    C --> D[Rethink]\n    D --> B\n    B ---->|No| E[End]\n```\nPour écrire des emojis dans la formation en utilisant emoji-toolkit, par exemple :heart:\n"
+          role: "system",
+          content:
+            "Tu es un expert en création de formations sur tout les sujets. Rédige les formations en Markdown, écrit en faisant un titre Markdown de niveau 1 puis des titres Markdown de niveau 2.",
         },
         {
-          "role": "user",
-          "content": `Rédige une formation longue et détaillée sur le sujet "${name}" en français.`
-        }
+          role: "user",
+          content: `Rédige une formation longue et détaillée sur le sujet "${name}" en français. Tu peux inclure des blocs de code en spécifiant le langage utilisé :\n\`\`\`langage \na = 1\n\`\`\`\nPour intégrer du code LaTeX, encadre simplement l'expression entre des symboles $, sans utiliser de blocs de code, par exemple : $f(x) = x$ ou $x$. Tu peux illustrer la formation avec des graph fait avec Mermaid, par exemple : \n\`\`\`mermaid\nflowchart TD\n    A[Start] --> B{Is it?}\n    B -->|Yes| C[OK]\n    C --> D[Rethink]\n    D --> B\n    B ---->|No| E[End]\n\`\`\`\nTu peux écrire des emojis dans la formation en utilisant emoji-toolkit, par exemple :heart:\n Ne met pas de = ou - sous les titres.`,
+        },
       ],
-      "model": "llama3-70b-8192",
-      "temperature": 1,
-      "max_tokens": 8192,
-      "top_p": 1,
-      "stream": false,
-      "stop": null
+      model: "llama3-70b-8192",
+      temperature: 1,
+      max_tokens: 8192,
+      top_p: 1,
+      stream: false,
+      stop: null,
     });
-
-    const data = chatCompletion.choices[0].message.content;
-    res.status(200).json({ type: 'markdown', text: data });
+    
+    const message = parseMarkdownToJSON(
+      chatCompletion.choices[0].message.content
+    );
+    if (message.length === 0) {
+      return res.status(400).json({ error: "Erreur lors de la génération" });
+    }
+    res.status(200).json([message]);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+};
+
+function parseMarkdownToJSON(markdown) {
+  // Split markdown into lines
+  const lines = markdown.split('\n');
+
+  // Initialize the JSON structure
+  const json = {
+      id: 1,
+      nom: "",
+      contenu: []
+  };
+
+  let currentSection = null;
+
+  lines.forEach(line => {
+      // Check for main title (H1)
+      if (/^# .+/.test(line)) {
+          json.nom = line.replace(/^# /, '').trim();
+      }
+
+      // Check for section titles (H2)
+      else if (/^## .+/.test(line)) {
+          if (currentSection) {
+              json.contenu.push(currentSection);
+          }
+          currentSection = {
+              id: json.contenu.length + 1,
+              title: line.replace(/^## /, '').trim(),
+              contenu: {
+                  id: json.contenu.length + 1,
+                  text: "",
+                  type: "markdown"
+              }
+          };
+      }
+
+      // Capture content under H2 sections
+      else if (currentSection) {
+          currentSection.contenu.text += line + '\n';
+      }
+  });
+
+  // Push the last section if exists
+  if (currentSection) {
+      json.contenu.push(currentSection);
+  }
+
+  // Clean up whitespace
+  json.contenu.forEach(section => {
+      section.contenu.text = section.contenu.text.trim();
+  });
+
+  return json;
 }
 
 export const putContenu = (req, res) => {
@@ -419,61 +482,74 @@ export const putContenu = (req, res) => {
     return res.status(400).json({ error: "Body invalide" });
   }
 
-  connection.query("DELETE FROM section WHERE id_formation = ?", [id], (err, results) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    } else {
-      const values = contenus.map(({ nom, contenu }, index) => [nom, JSON.stringify(contenu), index, id]);
-      connection.query(
-        "INSERT INTO section (nom, contenu, ordre, id_formation) VALUES ?",
-        [values],
-        (err, results) => {
-          if (err) {
-            return res.status(500).json({ error: err.message });
-          } else {
-            return res.status(201).json({ message: "Contenu ajouté" });
-          }
-        }
-      );
-    }
-  });
-}
-
-export const getContenu = (req, res) => {
-  const id = req.params.id;
-  let data = {};
-  connection.query(findByIdQuery,
+  connection.query(
+    "DELETE FROM section WHERE id_formation = ?",
     [id],
     (err, results) => {
       if (err) {
-        res.status(500).json({ error: err.message });
-      } else if (results.length === 0) {
-        res.status(404).json({ error: "Formation(s) non trouvée(s)" });
+        return res.status(500).json({ error: err.message });
       } else {
-        data = results[0];
-        connection.query(`
-          SELECT id, nom, contenu, ordre, id_formation
-          FROM section
-          WHERE id_formation = ?
-          ORDER BY ordre
-          `, [id],
+        const values = contenus.map(({ nom, contenu }, index) => [
+          nom,
+          JSON.stringify(contenu),
+          index,
+          id,
+        ]);
+        connection.query(
+          "INSERT INTO section (nom, contenu, ordre, id_formation) VALUES ?",
+          [values],
           (err, results) => {
             if (err) {
-              res.status(500).json({ error: err.message });
+              return res.status(500).json({ error: err.message });
             } else {
-              data.body = results.map(({ id, nom, contenu }) => ({ id, nom, contenu }));
-              res.status(200).json(data);
+              return res.status(201).json({ message: "Contenu ajouté" });
             }
           }
         );
       }
     }
   );
-}
+};
+
+export const getContenu = (req, res) => {
+  const id = req.params.id;
+  let data = {};
+  connection.query(findByIdQuery, [id], (err, results) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+    } else if (results.length === 0) {
+      res.status(404).json({ error: "Formation(s) non trouvée(s)" });
+    } else {
+      data = results[0];
+      connection.query(
+        `
+          SELECT id, nom, contenu, ordre, id_formation
+          FROM section
+          WHERE id_formation = ?
+          ORDER BY ordre
+          `,
+        [id],
+        (err, results) => {
+          if (err) {
+            res.status(500).json({ error: err.message });
+          } else {
+            data.body = results.map(({ id, nom, contenu }) => ({
+              id,
+              nom,
+              contenu,
+            }));
+            res.status(200).json(data);
+          }
+        }
+      );
+    }
+  });
+};
 
 export const findByUser = (req, res) => {
   const id_user = req.id;
-  connection.query(`
+  connection.query(
+    `
   SELECT formation.id, titre, formation.description, date_creation,
   JSON_OBJECT('id', user.id, 'nom', user.nom, 'prenom', user.prenom) as user,
   IF(COUNT(tag.id) > 0, 
@@ -484,17 +560,19 @@ export const findByUser = (req, res) => {
   LEFT JOIN tag ON posseder.id_tag = tag.id
   WHERE formation.id_user = ?
   GROUP BY formation.id
-  `, [id_user], (err, results) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    } else if (results.length === 0) {
-      return res.status(404).json({ error: "Formation(s) non trouvée(s)" });
-    } else {
-      return res.status(200).json(results);
+  `,
+    [id_user],
+    (err, results) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      } else if (results.length === 0) {
+        return res.status(404).json({ error: "Formation(s) non trouvée(s)" });
+      } else {
+        return res.status(200).json(results);
+      }
     }
-  }
   );
-}
+};
 
 export const publish = (req, res) => {
   const id_formation = req.params.id;
@@ -504,17 +582,23 @@ export const publish = (req, res) => {
     return res.status(400).json({ error: "Body invalide" });
   }
   publier = Boolean(publier);
-  connection.query(`
+  connection.query(
+    `
   UPDATE formation
   SET publier = :publier
   WHERE id = :id_formation AND id_user = :id_user
-  `, { publier, id_formation, id_user }, (err, results) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    } else if (results.affectedRows === 0) {
-      return res.status(401).json({ error: "Utilisateur non autorisé ou formation non trouvée" });
-    } else {
-      return res.status(200).json({ message: "Publication modifiée" });
+  `,
+    { publier, id_formation, id_user },
+    (err, results) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      } else if (results.affectedRows === 0) {
+        return res
+          .status(401)
+          .json({ error: "Utilisateur non autorisé ou formation non trouvée" });
+      } else {
+        return res.status(200).json({ message: "Publication modifiée" });
+      }
     }
-  });
-}
+  );
+};
