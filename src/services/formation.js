@@ -386,7 +386,8 @@ export const sendDefaultPhoto = (req, res) => {
 };
 
 export const generate = async (req, res) => {
-  const name = req.body.name;
+  const formationTitle = req.body.formationTitle;
+  const pageTitle = req.body.pageTitle;
   try {
     const chatCompletion = await groq.chat.completions.create({
       messages: [
@@ -397,7 +398,7 @@ export const generate = async (req, res) => {
         },
         {
           role: "user",
-          content: `Rédige une formation longue et détaillée sur le sujet "${name}" en français. Tu peux inclure des blocs de code en spécifiant le langage utilisé :\n\`\`\`langage \na = 1\n\`\`\`\nPour intégrer du code LaTeX, encadre simplement l'expression entre des symboles $, sans utiliser de blocs de code, par exemple : $f(x) = x$ ou $x$. Tu peux illustrer la formation avec des graph fait avec Mermaid, par exemple : \n\`\`\`mermaid\nflowchart TD\n    A[Start] --> B{Is it?}\n    B -->|Yes| C[OK]\n    C --> D[Rethink]\n    D --> B\n    B ---->|No| E[End]\n\`\`\`\nTu peux écrire des emojis dans la formation en utilisant emoji-toolkit, par exemple :heart:\n Ne met pas de = ou - sous les titres.`,
+          content: `Rédige le chapitre "${pageTitle}" d'une formation longue et détaillée sur le sujet "${formationTitle}" en français. Tu peux inclure des blocs de code en spécifiant le langage utilisé :\n\`\`\`langage \na = 1\n\`\`\`\nPour intégrer du code LaTeX, encadre simplement l'expression entre des symboles $, sans utiliser de blocs de code, par exemple : $f(x) = x$ ou $x$. Tu peux illustrer la formation avec des graph fait avec Mermaid, par exemple : \n\`\`\`mermaid\nflowchart TD\n    A[Start] --> B{Is it?}\n    B -->|Yes| C[OK]\n    C --> D[Rethink]\n    D --> B\n    B ---->|No| E[End]\n\`\`\`\nTu peux écrire des emojis dans la formation en utilisant emoji-toolkit, par exemple :heart:\n Ne met pas de = ou - sous les titres.`,
         },
       ],
       model: "llama3-70b-8192",
@@ -407,14 +408,14 @@ export const generate = async (req, res) => {
       stream: false,
       stop: null,
     });
-    
+
     const message = parseMarkdownToJSON(
       chatCompletion.choices[0].message.content
     );
     if (message.length === 0) {
       return res.status(400).json({ error: "Erreur lors de la génération" });
     }
-    res.status(200).json([message]);
+    res.status(200).json(message);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -422,53 +423,53 @@ export const generate = async (req, res) => {
 
 function parseMarkdownToJSON(markdown) {
   // Split markdown into lines
-  const lines = markdown.split('\n');
+  const lines = markdown.split("\n");
 
   // Initialize the JSON structure
   const json = {
-      id: 1,
-      nom: "",
-      contenu: []
+    id: 1,
+    nom: "",
+    contenu: [],
   };
 
   let currentSection = null;
 
-  lines.forEach(line => {
-      // Check for main title (H1)
-      if (/^# .+/.test(line)) {
-          json.nom = line.replace(/^# /, '').trim();
-      }
+  lines.forEach((line) => {
+    // Check for main title (H1)
+    if (/^# .+/.test(line)) {
+      json.nom = line.replace(/^# /, "").trim();
+    }
 
-      // Check for section titles (H2)
-      else if (/^## .+/.test(line)) {
-          if (currentSection) {
-              json.contenu.push(currentSection);
-          }
-          currentSection = {
-              id: json.contenu.length + 1,
-              title: line.replace(/^## /, '').trim(),
-              contenu: {
-                  id: json.contenu.length + 1,
-                  text: "",
-                  type: "markdown"
-              }
-          };
+    // Check for section titles (H2)
+    else if (/^## .+/.test(line)) {
+      if (currentSection) {
+        json.contenu.push(currentSection);
       }
+      currentSection = {
+        id: json.contenu.length + 1,
+        title: line.replace(/^## /, "").trim(),
+        contenu: {
+          id: json.contenu.length + 1,
+          text: "",
+          type: "markdown",
+        },
+      };
+    }
 
-      // Capture content under H2 sections
-      else if (currentSection) {
-          currentSection.contenu.text += line + '\n';
-      }
+    // Capture content under H2 sections
+    else if (currentSection) {
+      currentSection.contenu.text += line + "\n";
+    }
   });
 
   // Push the last section if exists
   if (currentSection) {
-      json.contenu.push(currentSection);
+    json.contenu.push(currentSection);
   }
 
   // Clean up whitespace
-  json.contenu.forEach(section => {
-      section.contenu.text = section.contenu.text.trim();
+  json.contenu.forEach((section) => {
+    section.contenu.text = section.contenu.text.trim();
   });
 
   return json;
