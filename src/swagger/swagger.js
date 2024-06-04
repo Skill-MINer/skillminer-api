@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const hostname = (new URL(process.env.URL_BACK)).hostname;
+const schemes = process.env.ENVIRONMENT === "dev" ? ['http'] : ['https'];
 
 const doc = {
   info: {
@@ -11,6 +12,7 @@ const doc = {
     description: "API de SkillMINer",
   },
   host: `${hostname}:${process.env.PORT}`,
+  schemes: schemes,
   securityDefinitions: {
     apiKeyAuth: {
       type: "apiKey",
