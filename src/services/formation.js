@@ -181,6 +181,46 @@ export const getContributors = (req, res) => {
   );
 };
 
+export const getContributorsByToken = (req, res) => {
+  const id_formation = req.params.id;
+  const id_user = req.id;
+
+  connection.query(`
+  SELECT user.id
+  FROM user 
+  INNER JOIN moderer ON user.id = moderer.id
+  INNER JOIN formation ON moderer.id_formation = formation.id
+  WHERE formation.id = ? AND formation.id_user = ?
+  GROUP BY user.id
+  `,
+    [id_formation, id_user, id_user],
+    (err, results) => {
+      if (err) {
+        res.status(500).json({ error: err.message });
+      } else if (results.length === 0) {
+        connection.query(`
+        SELECT id_user
+        FROM formation
+        WHERE id = ? AND id_user = ?
+        `,
+          [id_formation, id_user],
+          (err, results) => {
+            if (err) {
+              res.status(500).json({ error: err.message });
+            } else if (results.length === 0) {
+              res.status(401).json({ error: "Non autorisé, on dit merci pour le endpoint !" });
+            } else {
+              return res.status(200).json();
+            }
+          }
+        );
+      } else {
+        return res.status(200).json();
+      }
+    }
+  );
+};
+
 export const addHeader = async (req, res) => {
   const { titre, description, tag } = req.body;
   const idFormation = req.params.id;

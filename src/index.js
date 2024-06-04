@@ -63,6 +63,7 @@ app.get("/formations", limitOffset, formation.findAll);
 app.post("/formations", auth, formation.add);
 app.post("/formations/:id/contributors", auth, formation.addContributors);
 app.get("/formations/:id/contributors", formation.getContributors);
+app.get("/formations/:id/contributors/token-info", auth, formation.getContributorsByToken);
 app.put("/formations/:id/header", auth, formation.addHeader);
 app.put("/formations/:id/contenu", auth, formation.putContenu);
 app.get("/formations/:id/contenu", formation.getContenu);
