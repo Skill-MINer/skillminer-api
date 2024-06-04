@@ -66,6 +66,8 @@ app.get("/formations/:id/contributors", formation.getContributors);
 app.put("/formations/:id/header", auth, formation.addHeader);
 app.put("/formations/:id/contenu", auth, formation.putContenu);
 app.get("/formations/:id/contenu", formation.getContenu);
+app.post("/formations/:id_formation/contenu/:id_page/bloc/:id_bloc", auth, formation.postBlock);
+app.delete("/formations/:id_formation/contenu/:id_page/bloc/:id_bloc/proposal/:id_proposal", auth, formation.deleteProposerBlock);
 app.put("/formations/:id/publier", auth, formation.publish);
 app.post("/formations/generate", auth, formation.generate);
 
