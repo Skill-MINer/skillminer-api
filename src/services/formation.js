@@ -681,7 +681,8 @@ export const postBlock = (req, res) => {
         page.contenu = page.contenu.map((bloc) => {
           if (bloc.id == id_bloc) {
             bloc.proposalsContenu = bloc.proposalsContenu || [];
-            bloc.proposalsContenu.push({ id: bloc.proposalsContenu.length + 1, text, type });
+            const maxId = Math.max(...bloc.proposalsContenu.map((proposal) => proposal.id), 0);
+            bloc.proposalsContenu.push({ id: maxId + 1, text, type });
           }
           return bloc;
         });
