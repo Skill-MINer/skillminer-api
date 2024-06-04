@@ -208,7 +208,7 @@ export const getContributorsByToken = (req, res) => {
             if (err) {
               res.status(500).json({ error: err.message });
             } else if (results.length === 0) {
-              res.status(401).json({ error: "Non autorisé, on dit merci pour le endpoint !" });
+              res.status(401).json({ error: "Non autorisé !" });
             } else {
               return res.status(200).json();
             }
