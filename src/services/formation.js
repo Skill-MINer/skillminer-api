@@ -111,32 +111,46 @@ export const add = (req, res) => {
 };
 
 export const addContributors = (req, res) => {
-  const id_new_user = req.body.id_user;
+  const new_email = req.body.email;
   const id_user = req.id;
   const id_formation = req.params.id;
-  if (isNaN(id_new_user) || isNaN(id_formation)) {
+  if (new_email == undefined || isNaN(id_formation)) {
     return res.status(400).json({ error: "ID invalide" });
   }
+
   connection.query(
-    `SELECT id FROM formation WHERE id = ? AND id_user = ?`,
-    [id_formation, id_user],
+    `SELECT id FROM user WHERE email = ?`,
+    [new_email],
     (err, results) => {
       if (err) {
         res.status(500).json({ error: err.message });
       } else if (results.length === 0) {
-        res
-          .status(401)
-          .json({ error: "Utilisateur non autorisé ou formation non trouvée" });
+        res.status(404).json({ error: "Utilisateur non trouvé" });
       } else {
+        const id_new_user = results[0].id;
         connection.query(
-          `
-      INSERT INTO moderer (id, id_formation) VALUES (?, ?)`,
-          [id_new_user, id_formation],
+          `SELECT id FROM formation WHERE id = ? AND id_user = ?`,
+          [id_formation, id_user],
           (err, results) => {
             if (err) {
               res.status(500).json({ error: err.message });
+            } else if (results.length === 0) {
+              res
+                .status(401)
+                .json({
+                  error: "Utilisateur non autorisé ou formation non trouvée",
+                });
             } else {
-              res.status(201).json({ message: "Utilisateur ajouté" });
+              connection.query(`INSERT INTO moderer (id, id_formation) VALUES (?, ?)`,
+                [id_new_user, id_formation],
+                (err, results) => {
+                  if (err) {
+                    res.status(500).json({ error: err.message });
+                  } else {
+                    res.status(201).json({ message: "Utilisateur ajouté" });
+                  }
+                }
+              );
             }
           }
         );
@@ -147,9 +161,8 @@ export const addContributors = (req, res) => {
 
 export const getContributors = (req, res) => {
   const id_formation = req.params.id;
-  connection.query(
-    `
-  SELECT user.id, nom, prenom 
+  connection.query(`
+  SELECT user.id, nom, prenom, email 
   FROM user 
   LEFT JOIN moderer ON user.id = moderer.id
   WHERE id_formation = ?
@@ -618,33 +631,39 @@ export const postBlock = (req, res) => {
     FROM section
     WHERE id_formation = ? AND id = ?
     ORDER BY ordre
-  `, [id_formation, id_page], (err, results) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    } else {
-      const page = results[0];
-      console.log(page);
-      page.contenu = page.contenu.map(bloc => {
-        if (bloc.id == id_bloc) {
-          bloc.proposalsContenu = bloc.proposalsContenu || [];
-          bloc.proposalsContenu.push(contenu);
-        }
-        return bloc;
-      });
-      connection.query(`
+  `,
+    [id_formation, id_page],
+    (err, results) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      } else {
+        const page = results[0];
+        page.contenu = page.contenu.map((bloc) => {
+          if (bloc.id == id_bloc) {
+            bloc.proposalsContenu = bloc.proposalsContenu || [];
+            bloc.proposalsContenu.push(contenu);
+          }
+          return bloc;
+        });
+        connection.query(
+          `
         UPDATE section
         SET contenu = ?
         WHERE id = ?
-      `, [JSON.stringify(page.contenu), id_page], (err, results) => {
-        if (err) {
-          return res.status(500).json({ error: err.message });
-        } else {
-          return res.status(201).json({ message: "Bloc ajouté" });
-        }
-      });
+      `,
+          [JSON.stringify(page.contenu), id_page],
+          (err, results) => {
+            if (err) {
+              return res.status(500).json({ error: err.message });
+            } else {
+              return res.status(201).json({ message: "Bloc ajouté" });
+            }
+          }
+        );
+      }
     }
-  });
-}
+  );
+};
 
 export const deleteProposerBlock = (req, res) => {
   const id_formation = req.params.id_formation;
@@ -653,41 +672,58 @@ export const deleteProposerBlock = (req, res) => {
   const id_proposal = req.params.id_proposal;
   const id_user = req.id;
 
-  if (isNaN(id_formation) || isNaN(id_page) || isNaN(id_bloc) || isNaN(id_proposal)) {
+  if (
+    isNaN(id_formation) ||
+    isNaN(id_page) ||
+    isNaN(id_bloc) ||
+    isNaN(id_proposal)
+  ) {
     return res.status(400).json({ error: "ID invalide" });
   }
 
-  connection.query(`
+  connection.query(
+    `
     SELECT section.id, section.nom, section.contenu
     FROM section
     INNER JOIN formation ON section.id_formation = formation.id
     WHERE section.id_formation = ? AND section.id = ? AND formation.id_user = ?
     ORDER BY ordre
-  `, [id_formation, id_page, id_user], (err, results) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    } else if (results.length === 0) {
-      return res.status(404).json({ error: "Page non trouvée ou non autorisé" });
-    } else {
-      const page = results[0];
-      page.contenu = page.contenu.map(bloc => {
-        if (bloc.id == id_bloc) {
-          bloc.proposalsContenu = bloc.proposalsContenu || [];
-          bloc.proposalsContenu = bloc.proposalsContenu.filter(proposal => proposal.id != id_proposal);
-        }
-        return bloc;
-      });
-      connection.query(`
+  `,
+    [id_formation, id_page, id_user],
+    (err, results) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      } else if (results.length === 0) {
+        return res
+          .status(404)
+          .json({ error: "Page non trouvée ou non autorisé" });
+      } else {
+        const page = results[0];
+        page.contenu = page.contenu.map((bloc) => {
+          if (bloc.id == id_bloc) {
+            bloc.proposalsContenu = bloc.proposalsContenu || [];
+            bloc.proposalsContenu = bloc.proposalsContenu.filter(
+              (proposal) => proposal.id != id_proposal
+            );
+          }
+          return bloc;
+        });
+        connection.query(
+          `
         UPDATE section
         SET contenu = ?
         WHERE id = ?
-      `, [JSON.stringify(page.contenu), id_page], (err, results) => {
-        if (err) {
-          return res.status(500).json({ error: err.message });
-        } else {
-          return res.status(200).json({ message: "Proposition supprimée" });
-        }
-      });
+      `,
+          [JSON.stringify(page.contenu), id_page],
+          (err, results) => {
+            if (err) {
+              return res.status(500).json({ error: err.message });
+            } else {
+              return res.status(200).json({ message: "Proposition supprimée" });
+            }
+          }
+        );
+      }
     }
-  });
-}
+  );
+};
