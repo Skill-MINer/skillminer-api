@@ -8,7 +8,7 @@ const doc = {
     title: "SkillMINer",
     description: "API de SkillMINer",
   },
-  host: `localhost:${process.env.PORT}`,
+  host: `${process.env.URL_BACK}:${process.env.PORT}`,
   securityDefinitions: {
     apiKeyAuth: {
       type: "apiKey",
