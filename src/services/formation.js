@@ -661,9 +661,9 @@ export const postBlock = (req, res) => {
   const id_formation = req.params.id_formation;
   const id_page = req.params.id_page;
   const id_bloc = req.params.id_bloc;
-  const { contenu } = req.body;
+  const { id, text, type } = req.body;
 
-  if (!contenu || isNaN(id_formation) || isNaN(id_page) || isNaN(id_bloc)) {
+  if (!id || !text || !type || isNaN(id_formation) || isNaN(id_page) || isNaN(id_bloc)) {
     return res.status(400).json({ error: "Body or params invalide" });
   }
   connection.query(`
@@ -681,7 +681,7 @@ export const postBlock = (req, res) => {
         page.contenu = page.contenu.map((bloc) => {
           if (bloc.id == id_bloc) {
             bloc.proposalsContenu = bloc.proposalsContenu || [];
-            bloc.proposalsContenu.push(contenu);
+            bloc.proposalsContenu.push({ id, text, type });
           }
           return bloc;
         });
