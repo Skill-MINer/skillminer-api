@@ -30,7 +30,7 @@ export const auth = async (req, res, next) => {
 
 export const verifUserFormation = (req, res, next) => {
   const id_user = req.id;
-  const id_formation = req.params.id;
+  const id_formation = req.params.id || req.params.id_formation;
 
   connection.query(`
   SELECT id
