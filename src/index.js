@@ -111,16 +111,11 @@ if (process.env.ENVIRONMENT === "production") {
 
 const io = new Server(server, { cors: { origin: "*" } });
 
-// io.use((socket, next) => {
-  
-// });
 
 io.on("connection", (socket) => {
   let m_room_id = "";
   let m_user_id = "";
   let m_user_name = "";
-
-  console.log("a user connected");
 
   socket.on("connection-to-room", ({token, room_id}) => {
     if (!token) {
@@ -204,6 +199,5 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     socket.leave(m_room_id);
-    console.log("user disconnected");
   });
 });
