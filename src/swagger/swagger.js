@@ -3,12 +3,14 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+const hostname = (new URL(process.env.URL_BACK)).hostname;
+
 const doc = {
   info: {
     title: "SkillMINer",
     description: "API de SkillMINer",
   },
-  host: `${process.env.URL_BACK}:${process.env.PORT}`,
+  host: `${hostname}:${process.env.PORT}`,
   securityDefinitions: {
     apiKeyAuth: {
       type: "apiKey",
