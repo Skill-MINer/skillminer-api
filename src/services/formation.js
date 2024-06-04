@@ -3,7 +3,7 @@ import fs from "fs";
 import { deletePhoto } from "../scripts/file.js";
 import dotenv from "dotenv";
 import Groq from "groq-sdk";
-import exp from "constants";
+
 
 dotenv.config();
 const groq = new Groq({
@@ -630,7 +630,6 @@ export const findByUser = (req, res) => {
 
 export const publish = (req, res) => {
   const id_formation = req.params.id;
-  const id_user = req.id;
   let publier = req.body.publier;
   if (!(typeof publier === "boolean" || publier === 1 || publier === 0)) {
     return res.status(400).json({ error: "Body invalide" });
@@ -640,16 +639,16 @@ export const publish = (req, res) => {
     `
   UPDATE formation
   SET publier = :publier
-  WHERE id = :id_formation AND id_user = :id_user
+  WHERE id = :id_formation
   `,
-    { publier, id_formation, id_user },
+    { publier, id_formation },
     (err, results) => {
       if (err) {
         return res.status(500).json({ error: err.message });
       } else if (results.affectedRows === 0) {
         return res
           .status(401)
-          .json({ error: "Utilisateur non autorisé ou formation non trouvée" });
+          .json({ error: "Utilisateur non autorisé" });
       } else {
         return res.status(200).json({ message: "Publication modifiée" });
       }
@@ -676,6 +675,8 @@ export const postBlock = (req, res) => {
     (err, results) => {
       if (err) {
         return res.status(500).json({ error: err.message });
+      } else if (results.length === 0) {
+        return res.status(404).json({ error: "Page non trouvée" });
       } else {
         const page = results[0];
         page.contenu = page.contenu.map((bloc) => {
@@ -711,7 +712,6 @@ export const deleteProposerBlock = (req, res) => {
   const id_page = req.params.id_page;
   const id_bloc = req.params.id_bloc;
   const id_proposal = req.params.id_proposal;
-  const id_user = req.id;
 
   if (
     isNaN(id_formation) ||
@@ -727,17 +727,17 @@ export const deleteProposerBlock = (req, res) => {
     SELECT section.id, section.nom, section.contenu
     FROM section
     INNER JOIN formation ON section.id_formation = formation.id
-    WHERE section.id_formation = ? AND section.id = ? AND formation.id_user = ?
+    WHERE section.id_formation = ? AND section.id = ?
     ORDER BY ordre
   `,
-    [id_formation, id_page, id_user],
+    [id_formation, id_page],
     (err, results) => {
       if (err) {
         return res.status(500).json({ error: err.message });
       } else if (results.length === 0) {
         return res
           .status(404)
-          .json({ error: "Page non trouvée ou non autorisé" });
+          .json({ error: "Page non trouvée" });
       } else {
         const page = results[0];
         page.contenu = page.contenu.map((bloc) => {

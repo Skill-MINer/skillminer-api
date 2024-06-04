@@ -12,7 +12,7 @@ import jwt from "jsonwebtoken";
 
 import connection from './database/database.js';
 
-import { auth } from "./middleware/authentication.js";
+import { auth, verifUserFormation } from "./middleware/authentication.js";
 import { limitOffset } from "./middleware/limitOffset.js";
 import * as tag from "./services/tag.js";
 import * as formation from "./services/formation.js";
@@ -64,12 +64,12 @@ app.post("/formations", auth, formation.add);
 app.post("/formations/:id/contributors", auth, formation.addContributors);
 app.get("/formations/:id/contributors", formation.getContributors);
 app.get("/formations/:id/contributors/token-info", auth, formation.getContributorsByToken);
-app.put("/formations/:id/header", auth, formation.addHeader);
-app.put("/formations/:id/contenu", auth, formation.putContenu);
+app.put("/formations/:id/header", auth, verifUserFormation, formation.addHeader);
+app.put("/formations/:id/contenu", auth, verifUserFormation, formation.putContenu);
 app.get("/formations/:id/contenu", formation.getContenu);
 app.post("/formations/:id_formation/contenu/:id_page/bloc/:id_bloc", auth, formation.postBlock);
-app.delete("/formations/:id_formation/contenu/:id_page/bloc/:id_bloc/proposal/:id_proposal", auth, formation.deleteProposerBlock);
-app.put("/formations/:id/publier", auth, formation.publish);
+app.delete("/formations/:id_formation/contenu/:id_page/bloc/:id_bloc/proposal/:id_proposal", auth, verifUserFormation, formation.deleteProposerBlock);
+app.put("/formations/:id/publier", auth, verifUserFormation, formation.publish);
 app.post("/formations/generate", auth, formation.generate);
 
 app.patch("/formations/:id", auth, formation.update); // non utilisé
