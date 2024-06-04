@@ -31,7 +31,7 @@ export const auth = async (req, res, next) => {
 export const verifUserFormation = (req, res, next) => {
   const id_user = req.id;
   const id_formation = req.params.id;
-  console.log(id_user, id_formation);
+
   connection.query(`
   SELECT id
   FROM moderer
