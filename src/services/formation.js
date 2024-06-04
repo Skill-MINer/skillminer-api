@@ -452,7 +452,7 @@ export const generate = async (req, res) => {
         },
         {
           role: "user",
-          content: `Rédige le chapitre "${pageTitle}" d'une formation longue et détaillée sur le sujet "${formationTitle}" en français. Tu peux inclure des blocs de code en spécifiant le langage utilisé :\n\`\`\`langage \na = 1\n\`\`\`\nPour intégrer du code LaTeX, encadre simplement l'expression entre des symboles $, sans utiliser de blocs de code, par exemple : $f(x) = x$ ou $x$. Tu peux illustrer la formation avec des graph fait avec Mermaid, par exemple : \n\`\`\`mermaid\nflowchart TD\n    A[Start] --> B{Is it?}\n    B -->|Yes| C[OK]\n    C --> D[Rethink]\n    D --> B\n    B ---->|No| E[End]\n\`\`\`\nTu peux écrire des emojis dans la formation en utilisant emoji-toolkit, par exemple :heart:\n Ne met pas de = ou - sous les titres.`,
+          content: `Rédige le chapitre "${pageTitle}" très long et détaillée d'une formation sur le sujet "${formationTitle}" en français. Tu peux inclure des blocs de code en spécifiant le langage utilisé :\n\`\`\`langage \na = 1\n\`\`\`\nPour intégrer du code LaTeX, encadre simplement l'expression entre des symboles $, sans utiliser de blocs de code, par exemple : $f(x) = x$ ou $x$. Tu peux illustrer la formation avec des graph fait avec Mermaid, par exemple : \n\`\`\`mermaid\nflowchart TD\n    A[Start] --> B{Is it?}\n    B -->|Yes| C[OK]\n    C --> D[Rethink]\n    D --> B\n    B ---->|No| E[End]\n\`\`\`\nTu peux écrire des emojis dans la formation en utilisant emoji-toolkit, par exemple :heart:\n Ne met pas de = ou - sous les titres.`,
         },
       ],
       model: "llama3-70b-8192",
