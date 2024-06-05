@@ -190,10 +190,10 @@ export const getContributorsByToken = (req, res) => {
   FROM user 
   INNER JOIN moderer ON user.id = moderer.id
   INNER JOIN formation ON moderer.id_formation = formation.id
-  WHERE formation.id = ? AND formation.id_user = ?
+  WHERE formation.id = ? AND moderer.id = ?
   GROUP BY user.id
   `,
-    [id_formation, id_user, id_user],
+    [id_formation, id_user],
     (err, results) => {
       if (err) {
         res.status(500).json({ error: err.message });
