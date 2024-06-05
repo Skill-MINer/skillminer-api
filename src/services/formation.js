@@ -224,7 +224,6 @@ export const getContributorsByToken = (req, res) => {
 export const addHeader = async (req, res) => {
   const { titre, description, tag } = req.body;
   const idFormation = req.params.id;
-  const idUser = req.id;
   if (!titre || !description || isNaN(idFormation)) {
     return res.status(400).json({ error: "Data invalide" });
   }
@@ -235,8 +234,8 @@ export const addHeader = async (req, res) => {
   SET 
     titre = :titre,
     description = :description
-  WHERE id = :idFormation AND id_user = :idUser`,
-    { titre, description, idUser, idFormation },
+  WHERE id = :idFormation`,
+    { titre, description, idFormation },
     (err, results) => {
       if (err) {
         return res.status(500).json({ error: err.message });
@@ -531,7 +530,6 @@ function parseMarkdownToJSON(markdown) {
 
 export const putContenu = (req, res) => {
   const id = req.params.id;
-  const id_user = req.id;
   const contenus = req.body;
   if (!contenus || !Array.isArray(contenus)) {
     return res.status(400).json({ error: "Body invalide" });
@@ -653,8 +651,8 @@ export const publish = (req, res) => {
         return res.status(500).json({ error: err.message });
       } else if (results.affectedRows === 0) {
         return res
-          .status(401)
-          .json({ error: "Utilisateur non autorisé" });
+          .status(404)
+          .json({ error: "Formation non trouvée" });
       } else {
         return res.status(200).json({ message: "Publication modifiée" });
       }

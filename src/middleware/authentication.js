@@ -40,18 +40,19 @@ export const verifUserFormation = (req, res, next) => {
       return res.status(500).json({ error: err.message });
     } else if (results.length > 0) {
       next();
-    }
-  });
-  connection.query(`
-  SELECT id
-  FROM formation
-  WHERE id = ? AND id_user = ?`, [id_formation, id_user], (err, results) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    } else if (results.length > 0) {
-      next();
     } else {
-      return res.status(403).json({ error: "Accès non autorisé." });
+      connection.query(`
+      SELECT id
+      FROM formation
+      WHERE id = ? AND id_user = ?`, [id_formation, id_user], (err, results) => {
+        if (err) {
+          return res.status(500).json({ error: err.message });
+        } else if (results.length > 0) {
+          next();
+        } else {
+          return res.status(403).json({ error: "Accès non autorisé !" });
+        }
+      });
     }
   });
 }
