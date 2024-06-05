@@ -15,6 +15,7 @@ import connection from './database/database.js';
 
 import { auth, verifUserFormation } from "./middleware/authentication.js";
 import { limitOffset } from "./middleware/limitOffset.js";
+import { handleError } from "./middleware/errorHandler.js";
 import * as tag from "./services/tag.js";
 import * as formation from "./services/formation.js";
 import * as login from "./services/login.js";
@@ -139,6 +140,7 @@ app.use("/file/formations", express.static("public/formations"), formation.sendD
 
 app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerFile));
 app.use((req, res) => res.status(404).send({ error: "Page non trouvée" }));
+app.use(handleError);
 
 let server;
 if (process.env.ENVIRONMENT === "production") {
