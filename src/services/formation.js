@@ -542,6 +542,9 @@ export const putContenu = (req, res) => {
     [id],
     (err, results) => {
       if (err) {
+        if (req.headers["connection"] === "keep-alive") {
+          return;
+        }
         return res.status(500).json({ error: err.message });
       } else {
         const values = contenus.map(({ nom, contenu }, index) => [
@@ -554,6 +557,9 @@ export const putContenu = (req, res) => {
           "INSERT INTO section (nom, contenu, ordre, id_formation) VALUES ?",
           [values],
           (err, results) => {
+            if (req.headers["connection"] === "keep-alive") {
+              return;
+            }
             if (err) {
               return res.status(500).json({ error: err.message });
             } else {
