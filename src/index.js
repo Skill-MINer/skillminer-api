@@ -4,6 +4,7 @@ import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import swaggerUi from "swagger-ui-express";
 import fs from "fs";
+import path from "path";
 import multer from "multer";
 import http from "http";
 import https from "https";
@@ -41,7 +42,57 @@ const corsOptions = {
 const uploadUser = multer({ dest: "public/users/" });
 const uploadFormation = multer({ dest: "public/formations/" });
 
+const header = 'Timestamp,Method,URL,IP,User Agent\n';
+const maxFileSize = 5 * 1024 * 1024; // 5 MB
+let logFile = 'request_logs.csv';
+
 app.use(cors(corsOptions), bodyParser.json());
+
+app.use((req, res, next) => {
+  const log = `${new Date().toISOString()},${req.method},${req.originalUrl},${req.ip},${req.headers['user-agent']}\n`;
+
+  // Sanitize the logFile input
+  const safeLogFile = path.basename(logFile);
+
+  fs.stat(safeLogFile, (err, stats) => {
+    if (err && err.code === 'ENOENT') {
+      // File does not exist, write the header and the log
+      fs.writeFile(safeLogFile, header + log, err => {
+        if (err) {
+          console.error(err);
+        }
+      });
+    } else if (err) {
+      console.error(err);
+    } else {
+      // File exists, check size
+      if (stats.size >= maxFileSize) {
+        // File exceeded the size limit, delete it and create a new one
+        fs.unlink(safeLogFile, err => {
+          if (err) {
+            console.error(err);
+          } else {
+            fs.writeFile(safeLogFile, header, err => {
+              if (err) {
+                console.error(err);
+              }
+            });
+          }
+        });
+      } else {
+        // Append the log
+        fs.appendFile(safeLogFile, log, err => {
+          if (err) {
+            console.error(err);
+          }
+        });
+      }
+    }
+  });
+
+  next();
+});
+
 app.get("/", (req, res) => {
   res.send(`API de SkillMINER, documentation ${URL_BACK}/swagger`);
 });
