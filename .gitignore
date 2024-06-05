@@ -7,4 +7,4 @@ public/*/*.png
 .vercel
 
 pnpm-lock.yaml
-request_log.csv
+request_logs.csv
