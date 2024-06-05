@@ -65,7 +65,7 @@ export const resetRequest = (req, res) => {
             .status(500)
             .json({ error: "Erreur lors de l'envoi de l'email." });
         }
-        res.status(200).json({ message: "Email envoyé avec succès." });
+        return res.status(200).json({ message: "Email envoyé avec succès." });
       });
     }
   );
@@ -96,7 +96,7 @@ export const resetPassword = async (req, res) => {
         if (err) {
           return res.status(500).json({ error: err.message });
         }
-        res.status(200).json({ message: "Mot de passe modifié avec succès." });
+        return res.status(200).json({ message: "Mot de passe modifié avec succès." });
       }
     );
   });

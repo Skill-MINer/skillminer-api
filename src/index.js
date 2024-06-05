@@ -113,91 +113,95 @@ const io = new Server(server, { cors: { origin: "*" } });
 
 
 io.on("connection", (socket) => {
-  let m_room_id = "";
-  let m_user_id = "";
-  let m_user_name = "";
+  try {
+    let m_room_id = "";
+    let m_user_id = "";
+    let m_user_name = "";
 
-  socket.on("connection-to-room", ({token, room_id}) => {
-    if (!token) {
-      return new Error("Accès non autorisé. Token manquant.");
-    }
-    jwt.verify(token, secretKey, (err, decoded) => {
-      if (err) {
-        return new Error("Accès non autorisé. Token invalide.");
+    socket.on("connection-to-room", ({ token, room_id }) => {
+      if (!token) {
+        return new Error("Accès non autorisé. Token manquant.");
       }
-      m_user_id = decoded.id;
-    });
-    connection.query(`
+      jwt.verify(token, secretKey, (err, decoded) => {
+        if (err) {
+          return new Error("Accès non autorisé. Token invalide.");
+        }
+        m_user_id = decoded.id;
+      });
+      connection.query(`
     SELECT id, prenom
     FROM user WHERE id = ?`,
-    [m_user_id], (err, results) => {
-      if (err) {
-        throw new Error(err.message);
-      } else if (results.length === 0) {
-        throw new Error("Utilisateur non trouvé ou non autorisé");
-      } else {
-        m_user_name = results[0].prenom;
-      }
+        [m_user_id], (err, results) => {
+          if (err) {
+            throw new Error(err.message);
+          } else if (results.length === 0) {
+            throw new Error("Utilisateur non trouvé ou non autorisé");
+          } else {
+            m_user_name = results[0].prenom;
+          }
+        });
+      m_room_id = room_id;
+      socket.join(m_room_id);
+      socket.to(m_room_id).emit("getFormationData");
     });
-    m_room_id = room_id;
-    socket.join(m_room_id);
-    socket.to(m_room_id).emit("getFormationData");
-  });
 
-  socket.on("setFormationData", (data) => {
-    socket.to(m_room_id).emit("setFormationData", data);
-  });
+    socket.on("setFormationData", (data) => {
+      socket.to(m_room_id).emit("setFormationData", data);
+    });
 
-  socket.on("cursor", ({ top, left }) => {
-    socket.to(m_room_id).emit("cursor", {
-       id: m_user_id,
-       name: m_user_name,
-       top,
-       left 
+    socket.on("cursor", ({ top, left }) => {
+      socket.to(m_room_id).emit("cursor", {
+        id: m_user_id,
+        name: m_user_name,
+        top,
+        left
       });
-  });
+    });
 
-  socket.on("edit", (data) => {
-    socket.to(m_room_id).emit("edit", data);
-  });
+    socket.on("edit", (data) => {
+      socket.to(m_room_id).emit("edit", data);
+    });
 
-  socket.on("moveBlock", (data) => {
-    socket.to(m_room_id).emit("moveBlock", data);
-  });
+    socket.on("moveBlock", (data) => {
+      socket.to(m_room_id).emit("moveBlock", data);
+    });
 
-  socket.on("addBlockMD", (data) => {
-    socket.to(m_room_id).emit("addBlockMD", data);
-  });
+    socket.on("addBlockMD", (data) => {
+      socket.to(m_room_id).emit("addBlockMD", data);
+    });
 
-  socket.on("editTitle", (data) => {
-    socket.to(m_room_id).emit("editTitle", data);
-  });
+    socket.on("editTitle", (data) => {
+      socket.to(m_room_id).emit("editTitle", data);
+    });
 
-  socket.on("movePage", (data) => {
-    socket.to(m_room_id).emit("movePage", data);
-  });
+    socket.on("movePage", (data) => {
+      socket.to(m_room_id).emit("movePage", data);
+    });
 
-  socket.on("editPageTitle", (data) => {
-    socket.to(m_room_id).emit("editPageTitle", data);
-  });
+    socket.on("editPageTitle", (data) => {
+      socket.to(m_room_id).emit("editPageTitle", data);
+    });
 
-  socket.on("addPage", (data) => {
-    socket.to(m_room_id).emit("addPage", data);
-  });
+    socket.on("addPage", (data) => {
+      socket.to(m_room_id).emit("addPage", data);
+    });
 
-  socket.on("addBlockVideo", (data) => {
-    socket.to(m_room_id).emit("addBlockVideo", data);
-  });
+    socket.on("addBlockVideo", (data) => {
+      socket.to(m_room_id).emit("addBlockVideo", data);
+    });
 
-  socket.on('deleteBlock', (data) => {
-    socket.to(m_room_id).emit('deleteBlock', data);
-  });
+    socket.on('deleteBlock', (data) => {
+      socket.to(m_room_id).emit('deleteBlock', data);
+    });
 
-  socket.on("deletePage", (data) => {
-    socket.to(m_room_id).emit("deletePage", data);
-  });
+    socket.on("deletePage", (data) => {
+      socket.to(m_room_id).emit("deletePage", data);
+    });
 
-  socket.on("disconnect", () => {
-    socket.leave(m_room_id);
-  });
+    socket.on("disconnect", () => {
+      socket.leave(m_room_id);
+    });
+  } catch (error) {
+    console.error(`Error: ${error.message}`);
+  }
 });
