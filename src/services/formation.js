@@ -55,11 +55,11 @@ export const findAll = (req, res) => {
     { titre, limit, offset, tags, nbTags },
     (err, results) => {
       if (err) {
-        res.status(500).json({ error: err.message });
+        return res.status(500).json({ error: err.message });
       } else if (results.length === 0) {
-        res.status(404).json({ error: "Formation(s) non trouvée(s)" });
+        return res.status(404).json({ error: "Formation(s) non trouvée(s)" });
       } else {
-        res.status(200).json(results);
+        return res.status(200).json(results);
       }
     }
   );
@@ -84,11 +84,11 @@ export const findById = (req, res) => {
 
   connection.query(findByIdQuery, [id], (err, results) => {
     if (err) {
-      res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: err.message });
     } else if (results.length === 0) {
-      res.status(404).json({ error: "Formation(s) non trouvée(s)" });
+      return res.status(404).json({ error: "Formation(s) non trouvée(s)" });
     } else {
-      res.status(200).json(results[0]);
+      return res.status(200).json(results[0]);
     }
   });
 };
@@ -102,9 +102,9 @@ export const add = (req, res) => {
     [dateCreation, id_user],
     (err, results) => {
       if (err) {
-        res.status(500).json({ error: err.message });
+        return res.status(500).json({ error: err.message });
       } else {
-        res.status(201).json({ id: results.insertId });
+        return res.status(201).json({ id: results.insertId });
       }
     }
   );
@@ -123,9 +123,9 @@ export const addContributors = (req, res) => {
     [new_email],
     (err, results) => {
       if (err) {
-        res.status(500).json({ error: err.message });
+        return res.status(500).json({ error: err.message });
       } else if (results.length === 0) {
-        res.status(404).json({ error: "Utilisateur non trouvé" });
+        return res.status(404).json({ error: "Utilisateur non trouvé" });
       } else {
         const id_new_user = results[0].id;
         connection.query(
@@ -133,7 +133,7 @@ export const addContributors = (req, res) => {
           [id_formation, id_user],
           (err, results) => {
             if (err) {
-              res.status(500).json({ error: err.message });
+              return res.status(500).json({ error: err.message });
             } else if (results.length === 0) {
               res
                 .status(401)
@@ -145,9 +145,9 @@ export const addContributors = (req, res) => {
                 [id_new_user, id_formation],
                 (err, results) => {
                   if (err) {
-                    res.status(500).json({ error: err.message });
+                    return res.status(500).json({ error: err.message });
                   } else {
-                    res.status(201).json({ message: "Utilisateur ajouté" });
+                    return res.status(201).json({ message: "Utilisateur ajouté" });
                   }
                 }
               );
@@ -171,11 +171,11 @@ export const getContributors = (req, res) => {
     [id_formation],
     (err, results) => {
       if (err) {
-        res.status(500).json({ error: err.message });
+        return res.status(500).json({ error: err.message });
       } else if (results.length === 0) {
-        res.status(404).json({ error: "Aucun contributeur trouvé" });
+        return res.status(404).json({ error: "Aucun contributeur trouvé" });
       } else {
-        res.status(200).json(results);
+        return res.status(200).json(results);
       }
     }
   );
@@ -196,7 +196,7 @@ export const getContributorsByToken = (req, res) => {
     [id_formation, id_user],
     (err, results) => {
       if (err) {
-        res.status(500).json({ error: err.message });
+        return res.status(500).json({ error: err.message });
       } else if (results.length === 0) {
         connection.query(`
         SELECT id_user
@@ -206,9 +206,9 @@ export const getContributorsByToken = (req, res) => {
           [id_formation, id_user],
           (err, results) => {
             if (err) {
-              res.status(500).json({ error: err.message });
+              return res.status(500).json({ error: err.message });
             } else if (results.length === 0) {
-              res.status(401).json({ error: "Non autorisé !" });
+              return res.status(401).json({ error: "Non autorisé !" });
             } else {
               return res.status(200).json();
             }
@@ -239,7 +239,7 @@ export const addHeader = async (req, res) => {
     { titre, description, idUser, idFormation },
     (err, results) => {
       if (err) {
-        res.status(500).json({ error: err.message });
+        return res.status(500).json({ error: err.message });
       } else {
         connection.query(
           `
@@ -248,7 +248,7 @@ export const addHeader = async (req, res) => {
           { idFormation },
           (err, results) => {
             if (err) {
-              res.status(500).json({ error: err.message });
+              return res.status(500).json({ error: err.message });
             } else {
               if (tag && tag.length > 0) {
                 const tagValues = tag.map((tagId) => [idFormation, tagId]);
@@ -259,17 +259,17 @@ export const addHeader = async (req, res) => {
                   [tagValues],
                   (err, results) => {
                     if (err) {
-                      res.status(500).json({
+                      return res.status(500).json({
                         error: err.message,
                         error_tag: "Erreur lors de l'ajout des tags",
                       });
                     } else {
-                      res.status(201).json();
+                      return res.status(201).json();
                     }
                   }
                 );
               } else {
-                res.status(201).json();
+                return res.status(201).json();
               }
             }
           }
@@ -298,13 +298,13 @@ export const update = (req, res) => {
     { id, titre, description, id_user },
     (err, results) => {
       if (err) {
-        res.status(500).json({ error: err.message });
+        return res.status(500).json({ error: err.message });
       } else if (results.affectedRows === 0) {
         res
           .status(401)
           .json({ error: "Utilisateur non autorisé ou formation non trouvée" });
       } else {
-        res.status(200).json({ message: results.info });
+        return res.status(200).json({ message: results.info });
       }
     }
   );
@@ -322,13 +322,13 @@ export const deleteFormation = (req, res) => {
     [id, id_user],
     (err, results) => {
       if (err) {
-        res.status(500).json({ error: err.message });
+        return res.status(500).json({ error: err.message });
       } else if (results.affectedRows === 0) {
         res
           .status(401)
           .json({ error: "Utilisateur non autorisé ou formation non trouvée" });
       } else {
-        res.status(200).json({ message: "Formation supprimée" });
+        return res.status(200).json({ message: "Formation supprimée" });
       }
     }
   );
@@ -352,14 +352,14 @@ export const addTags = (req, res) => {
     { id_formation, id_tag, id_user },
     (err, results) => {
       if (err) {
-        res.status(500).json({ error: err.message });
+        return res.status(500).json({ error: err.message });
       } else if (results.affectedRows === 0) {
-        res.status(401).json({
+        return res.status(401).json({
           error:
             "utilisateur non autorisé ou formation non trouvée ou tag déjà possédé ou tag non existant",
         });
       } else {
-        res.status(201).json({ message: "Tag ajouté" });
+        return res.status(201).json({ message: "Tag ajouté" });
       }
     }
   );
@@ -389,14 +389,14 @@ export const removeTag = (req, res) => {
     { id_formation, id_tag, id_user },
     (err, results) => {
       if (err) {
-        res.status(500).json({ error: err.message });
+        return res.status(500).json({ error: err.message });
       } else if (results.affectedRows === 0) {
-        res.status(401).json({
+        return res.status(401).json({
           error:
             "Utilisateur non autorisé ou formation non trouvée ou le tag n'existe pas dans cette formation",
         });
       } else {
-        res.status(200).json({ message: "Tag supprimé de la formation" });
+        return res.status(200).json({ message: "Tag supprimé de la formation" });
       }
     }
   );
@@ -469,9 +469,9 @@ export const generate = async (req, res) => {
     if (message.length === 0) {
       return res.status(400).json({ error: "Erreur lors de la génération" });
     }
-    res.status(200).json(message);
+    return res.status(200).json(message);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 };
 
@@ -571,9 +571,9 @@ export const getContenu = (req, res) => {
   let data = {};
   connection.query(findByIdQuery, [id], (err, results) => {
     if (err) {
-      res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: err.message });
     } else if (results.length === 0) {
-      res.status(404).json({ error: "Formation(s) non trouvée(s)" });
+      return res.status(404).json({ error: "Formation(s) non trouvée(s)" });
     } else {
       data = results[0];
       connection.query(`
@@ -585,14 +585,14 @@ export const getContenu = (req, res) => {
         [id],
         (err, results) => {
           if (err) {
-            res.status(500).json({ error: err.message });
+            return res.status(500).json({ error: err.message });
           } else {
             data.body = results.map(({ id, nom, contenu }) => ({
               id,
               nom,
               contenu,
             }));
-            res.status(200).json(data);
+            return res.status(200).json(data);
           }
         }
       );

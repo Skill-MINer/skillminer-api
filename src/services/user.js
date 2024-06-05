@@ -16,11 +16,11 @@ export const findAll = (req, res) => {
   const offset = req.offset;
   connection.query('SELECT id, nom, prenom, email, description, date_inscription FROM user LIMIT ? OFFSET ?', [limit, offset], (err, results) => {
     if (err) {
-      res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: err.message });
     } else if (results.length === 0) {
-      res.status(404).json({ error: "Utilisateur non trouvé" });
+      return res.status(404).json({ error: "Utilisateur non trouvé" });
     } else {
-      res.status(200).json(results);
+      return res.status(200).json(results);
     }
   });
 };
@@ -36,11 +36,11 @@ export const findById = (req, res) => {
   FROM user WHERE id = ?`,
   [id], (err, results) => {
     if (err) {
-      res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: err.message });
     } else if (results.length === 0) {
-      res.status(404).json({ error: "Utilisateur non trouvé" });
+      return res.status(404).json({ error: "Utilisateur non trouvé" });
     } else {
-      res.status(200).json(results[0]);
+      return res.status(200).json(results[0]);
     }
   });
 };
@@ -62,10 +62,10 @@ export const add = async (req, res) => {
   VALUES (?, ?, ?, ?, ?, ?, ?)`, [ nom, prenom, email, hashPassword, "", dateInscription, 0 ], 
   (err, results) => {
     if (err) {
-      res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: err.message });
     } else {
       const id = results.insertId;
-      res.status(201).json({ id: id, token: createToken(id), expiresIn });
+      return res.status(201).json({ id: id, token: createToken(id), expiresIn });
     }
   });
 }
@@ -92,11 +92,11 @@ export const update = (req, res) => {
   { id, nom, prenom, email: emailVerify, description}, 
   (err, results) => {
     if (err) {
-      res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: err.message });
     } else if (results.affectedRows === 0) {
-      res.status(404).json({ error: "Utilisateur non trouvé ou non autorisé" });
+      return res.status(404).json({ error: "Utilisateur non trouvé ou non autorisé" });
     } else {
-      res.status(200).json({ message: results.info });
+      return res.status(200).json({ message: results.info });
     }
   });
 }
@@ -110,9 +110,9 @@ export const updatePassword = async (req, res) => {
 
   connection.query('SELECT password FROM user WHERE id = ?', [id], async (err, results) => {
     if (err) {
-      res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: err.message });
     } else if (results.length === 0) {
-      res.status(404).json({ error: "Utilisateur non trouvé" });
+      return res.status(404).json({ error: "Utilisateur non trouvé" });
     } else {
       const password = results[0].password;
       const isPasswordValid = await bcrypt.compare(oldPassword, password);
@@ -122,9 +122,9 @@ export const updatePassword = async (req, res) => {
       const hashPassword = await bcrypt.hash(newPassword, 10);
       connection.query('UPDATE user SET password = ? WHERE id = ?', [hashPassword, id], (err, results) => {
         if (err) {
-          res.status(500).json({ error: err.message });
+          return res.status(500).json({ error: err.message });
         } else {
-          res.status(200).json({ message: "Mot de passe modifié" });
+          return res.status(200).json({ message: "Mot de passe modifié" });
         }
       });
     }
@@ -135,11 +135,11 @@ export const deleteWithToken = (req, res) => {
   const id = req.id;
   connection.query('DELETE FROM user WHERE id = ?', [id], (err, results) => {
     if (err) {
-      res.status(500).json({ error: err.message });
+      return res.status(500).json({ error: err.message });
     } else if (results.affectedRows === 0) {
-      res.status(404).json({ error: "Utilisateur non trouvé" });
+      return res.status(404).json({ error: "Utilisateur non trouvé" });
     } else {
-      res.status(200).json({ message: "Utilisateur supprimé" });
+      return res.status(200).json({ message: "Utilisateur supprimé" });
     }
   });
 }
@@ -163,9 +163,9 @@ export const sendPhoto = (req, res) => {
     if (err) {
       connection.query('SELECT email FROM user WHERE id = ?', [id], (err, results) => {
         if (err) {
-          res.status(500).json({ error: err.message });
+          return res.status(500).json({ error: err.message });
         } else if (results.length === 0) {
-          res.status(404).json({ error: "Utilisateur non trouvé" });
+          return res.status(404).json({ error: "Utilisateur non trouvé" });
         } else {
           res.redirect(307, gravatar.url(results[0].email, { s: '200', r: 'pg', d: 'identicon' }, true));
         }
@@ -178,9 +178,9 @@ export const deletePhoto = (req, res) => {
   const id = req.id;
   fs.unlink(`public/users/${id}.png`, (err) => {
     if (err) {
-      res.status(500).json({ error: "Erreur lors de la suppression de la photo" });
+      return res.status(500).json({ error: "Erreur lors de la suppression de la photo" });
     } else {
-      res.status(200).json({ message: "Photo supprimée" });
+      return res.status(200).json({ message: "Photo supprimée" });
     }
   });
 }
