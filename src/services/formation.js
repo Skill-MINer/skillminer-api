@@ -22,7 +22,7 @@ export const findAll = (req, res) => {
     }
     tags = tags.map(Number);
   }
-
+  const titreLike = `%${titre}%`;
   const nbTags = tags ? tags.length : 0;
   const tagQuery = `
   formation.id IN (
@@ -45,14 +45,14 @@ export const findAll = (req, res) => {
   LEFT JOIN tag ON posseder.id_tag = tag.id
   WHERE 
     ${nbTags > 0 ? tagQuery : ""} 
-    (:titre IS NULL OR MATCH(titre) AGAINST(:titre IN BOOLEAN MODE))
+    ((:titre IS NULL OR MATCH(titre) AGAINST(:titre IN NATURAL LANGUAGE MODE)) OR titre LIKE :titreLike)
     AND formation.publier = 1
   GROUP BY formation.id 
-  ORDER BY MATCH(titre) AGAINST(:titre IN BOOLEAN MODE) DESC 
+  ORDER BY MATCH(titre) AGAINST(:titre IN NATURAL LANGUAGE MODE) DESC 
   LIMIT :limit 
   OFFSET :offset 
   `,
-    { titre, limit, offset, tags, nbTags },
+    { titre, limit, offset, tags, nbTags, titreLike },
     (err, results) => {
       if (err) {
         return res.status(500).json({ error: err.message });
