@@ -1,19 +1,25 @@
 import connection from "../database/database.js";
 
 export const findAll = (req, res) => {
-  connection.query(
-    "SELECT id, nom FROM tag ORDER BY nom ASC",
-    [],
-    (err, results) => {
-      if (err) {
-        return res.status(500).json({ error: err.message });
-      } else if (results.length === 0) {
-        return res.status(404).json({ error: "Utilisateur non trouvé" });
-      } else {
-        return res.status(200).json(results);
-      }
+  const limit = req.query.limit ? parseInt(req.query.limit) : null;
+
+  let query = "SELECT id, nom FROM tag ORDER BY nom ASC";
+  let queryParams = [];
+
+  if (limit) {
+    query += " LIMIT ?";
+    queryParams.push(limit);
+  }
+
+  connection.query(query, queryParams, (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    } else if (results.length === 0) {
+      return res.status(404).json({ error: "Utilisateur non trouvé" });
+    } else {
+      return res.status(200).json(results);
     }
-  );
+  });
 };
 
 export const add = (req, res) => {
