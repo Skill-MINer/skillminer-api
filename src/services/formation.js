@@ -614,11 +614,13 @@ export const putContenu = (req, res) => {
 export const putBlock = (req, res) => {
   const id_formation = req.params.id_formation;
   const id_page = req.params.id_page;
-  const { contenu } = JSON.parse(req.body.contenu);
+  let contenu = req.body.contenu;
+  contenu = JSON.stringify(contenu);
 
   if (isNaN(id_formation) || isNaN(id_page)) {
     return res.status(400).json({ error: "ID invalide" });
   }
+
   connection.query(
     `
     UPDATE section
