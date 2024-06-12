@@ -71,6 +71,7 @@ app.get("/formations/:id/contributors/token-info", auth, formation.getContributo
 app.put("/formations/:id/header", auth, verifUserFormation, formation.addHeader);
 app.put("/formations/:id/contenu", auth, verifUserFormation, formation.putContenu);
 app.get("/formations/:id/contenu", formation.getContenu);
+app.put("/formations/:id_formation/contenu/:id_page", auth, verifUserFormation, formation.putBlock);
 app.post("/formations/:id_formation/contenu/:id_page/bloc/:id_bloc", auth, formation.postBlock);
 app.delete("/formations/:id_formation/contenu/:id_page/bloc/:id_bloc/proposal/:id_proposal", auth, verifUserFormation, formation.deleteProposerBlock);
 app.put("/formations/:id/publier", auth, verifUserFormation, formation.publish);

@@ -611,6 +611,31 @@ export const putContenu = (req, res) => {
   );
 };
 
+export const putBlock = (req, res) => {
+  const id_formation = req.params.id_formation;
+  const id_page = req.params.id_page;
+  const { contenu } = JSON.parse(req.body.contenu);
+
+  if (isNaN(id_formation) || isNaN(id_page)) {
+    return res.status(400).json({ error: "ID invalide" });
+  }
+  connection.query(
+    `
+    UPDATE section
+    SET contenu = :contenu
+    WHERE id_formation = :id_formation AND id = :id_page
+    `,
+    { contenu, id_formation, id_page },
+    (err, results) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      } else {
+        return res.status(200).json({ message: "Bloc modifié" });
+      }
+    }
+  );
+};
+
 export const getContenu = (req, res) => {
   const id = req.params.id;
   let data = {};
