@@ -124,6 +124,7 @@ app.post("/formations/:id_formation/contenu/:id_page/bloc/:id_bloc", auth, forma
 app.delete("/formations/:id_formation/contenu/:id_page/bloc/:id_bloc/proposal/:id_proposal", auth, verifUserFormation, formation.deleteProposerBlock);
 app.put("/formations/:id/publier", auth, verifUserFormation, formation.publish);
 app.post("/formations/generate", auth, formation.generate);
+app.get("/formations/:id/editors", auth, formation.getEditors);
 
 app.patch("/formations/:id", auth, formation.update); // non utilisé
 app.delete("/formations/:id", auth, formation.deleteFormation); // non utilisé

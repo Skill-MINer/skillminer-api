@@ -190,6 +190,38 @@ export const getContributors = (req, res) => {
   );
 };
 
+export const getEditors = (req, res) => {
+  const id_formation = req.params.id;
+  connection.query(`
+  SELECT user.id, nom, prenom, email
+  FROM user
+  INNER JOIN formation ON user.id = formation.id_user
+  WHERE formation.id = ?
+  `, [id_formation],
+    (err, results) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      } else {
+        connection.query(`
+        SELECT user.id, nom, prenom, email 
+        FROM user 
+        LEFT JOIN moderer ON user.id = moderer.id
+        WHERE id_formation = ?
+        GROUP BY user.id
+        `, [id_formation],
+          (err, results2) => {
+            if (err) {
+              return res.status(500).json({ error: err.message });
+            } else {
+              return res.status(200).json([...results, ...results2]);
+            }
+          }
+        );
+      }
+    }
+  );
+};
+
 export const getContributorsByToken = (req, res) => {
   const id_formation = req.params.id;
   const id_user = req.id;
