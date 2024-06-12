@@ -104,7 +104,16 @@ export const add = (req, res) => {
       if (err) {
         return res.status(500).json({ error: err.message });
       } else {
-        return res.status(201).json({ id: results.insertId });
+        const id_formation = results.insertId;
+        connection.query(`SELECT id, nom, prenom, email FROM user WHERE id = ?`, [id_user], (err, results) => {
+          if (err) {
+            return res.status(500).json({ error: err.message });
+          } else if (results.length === 0) {
+            return res.status(404).json({ error: "Utilisateur non trouvé" });
+          } else {
+            return res.status(201).json({ id: id_formation, user: results[0] });
+          }
+        });
       }
     }
   );
