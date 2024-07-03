@@ -1,6 +1,9 @@
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import connection from "../database/database.js";
+import util from 'util';
+
+const query = util.promisify(connection.query).bind(connection);
 
 dotenv.config();
 
@@ -28,31 +31,32 @@ export const auth = async (req, res, next) => {
   }
 };
 
-export const verifUserFormation = (req, res, next) => {
+export const verifUserFormation = async (req, res, next) => {
   const id_user = req.id;
   const id_formation = req.params.id || req.params.id_formation;
 
-  connection.query(`
-  SELECT id
-  FROM moderer
-  WHERE id = ? AND id_formation = ?`, [id_user, id_formation], (err, results) => {
-    if (err) {
-      return res.status(500).json({ error: err.message });
-    } else if (results.length > 0) {
-      next();
-    } else {
-      connection.query(`
-      SELECT id
-      FROM formation
-      WHERE id = ? AND id_user = ?`, [id_formation, id_user], (err, results) => {
-        if (err) {
-          return res.status(500).json({ error: err.message });
-        } else if (results.length > 0) {
-          next();
-        } else {
-          return res.status(403).json({ error: "Accès non autorisé !" });
-        }
-      });
+  try {
+    const modererResults = await query(
+      "SELECT id FROM moderer WHERE id = ? AND id_formation = ?",
+      [id_user, id_formation]
+    );
+
+    if (modererResults.length > 0) {
+      return next();
     }
-  });
-}
+
+    const formationResults = await query(
+      "SELECT id FROM formation WHERE id = ? AND id_user = ?",
+      [id_formation, id_user]
+    );
+
+    if (formationResults.length > 0) {
+      return next();
+    }
+
+    return res.status(403).json({ error: "Accès non autorisé !" });
+
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};
