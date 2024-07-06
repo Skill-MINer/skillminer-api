@@ -23,5 +23,9 @@ router.get(
   express.static("public/formations"),
   file.sendDefaultFormationPhoto
 );
+router.get(
+  "/formations/:id",
+  file.sendFormationPhoto
+);
 
 export default router;

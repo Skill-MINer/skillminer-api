@@ -6,8 +6,8 @@ import * as formation from '../../controllers/formation.js'
 
 const router = Router();
 
-router.get("", limitOffset, formation.findAll);
-router.post("", auth, formation.add);
+router.get("/", limitOffset, formation.findAll);
+router.post("/", auth, formation.add);
 router.get("/user", auth, formation.getFormationByUser);
 router.get("/contributor", auth, formation.getFormationByContributor);
 router.post("/generate", auth, formation.generate);

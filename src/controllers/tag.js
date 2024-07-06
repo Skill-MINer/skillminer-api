@@ -1,6 +1,6 @@
-import { promisify } from "util";
 import db from "../database/database.js";
 import { tryCatchWrapper } from "../middleware/tryCatchWrapper.js";
+import { createCustomError } from "../scripts/customError.js";
 
 export const getTags = tryCatchWrapper(async function (req, res, next) {
   const limit = req.query.limit ? parseInt(req.query.limit) : null;

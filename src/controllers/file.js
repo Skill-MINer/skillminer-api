@@ -2,6 +2,7 @@ import db from "../database/database.js";
 import fs from "fs";
 import gravatar from "gravatar";
 import { tryCatchWrapper } from "../middleware/tryCatchWrapper.js";
+import { createCustomError } from "../scripts/customError.js";
 
 
 export const uploadUserPhoto = tryCatchWrapper(async function (req, res, next) {
@@ -81,5 +82,20 @@ export const uploadFormationPhoto = tryCatchWrapper(async function (req, res, ne
 });
 
 export const sendDefaultFormationPhoto = tryCatchWrapper(async function (req, res, next) {
-  res.sendFile("public/formations/default.png", { root: "." });
+  return res.sendFile("public/formations/default.png", { root: "." });
+});
+
+export const sendFormationPhoto = tryCatchWrapper(async function (req, res) {
+  const { id } = req.params;
+
+  if (!id) {
+    return next(createCustomError("Mauvais format de l'identifiant", 400));
+  }
+  const id_formation = parseInt(id.split(".")[0]);
+
+  res.sendFile(`public/formations/${id_formation}`, { root: "." }, async (err) => {
+    if (err || !id_formation) {
+      res.sendFile("public/formations/default.png", { root: "." });
+    }
+  });
 });

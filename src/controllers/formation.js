@@ -2,6 +2,7 @@ import db from "../database/database.js";
 import dotenv from "dotenv";
 import Groq from "groq-sdk";
 import { tryCatchWrapper } from "../middleware/tryCatchWrapper.js";
+import { createCustomError } from "../scripts/customError.js";
 
 
 dotenv.config();
@@ -114,6 +115,9 @@ export const findAll = tryCatchWrapper(async function (req, res, next) {
       ((:titre IS NULL OR MATCH(titre) AGAINST(:titre IN NATURAL LANGUAGE MODE)) OR titre LIKE :titreLike)
       AND formation.publier = 1
     GROUP BY formation.id
+    ORDER BY MATCH(titre) AGAINST(:titre IN NATURAL LANGUAGE MODE) DESC
+    LIMIT :limit
+    OFFSET :offset
   `;
   const values = { titre, limit, offset, tags, nbTags, titreLike };
 
@@ -469,19 +473,19 @@ export const getContenu = tryCatchWrapper(async function (req, res, next) {
 
   const data = rows[0];
   let sql = `
-    SELECT id, nom, contenu
+    SELECT id, nom, contenu, ordre, id_formation
     FROM section
     WHERE id_formation = ?
     ORDER BY ordre
   `;
   const [rowsSections] = await db.query(sql, [id]);
 
-  data.body = rowsSections[0].map(({ id, nom, contenu }) => ({
+  data.body = rowsSections.map(({ id, nom, contenu }) => ({
     id,
     nom,
-    contenu: JSON.parse(contenu),
+    contenu
   }));
-  return res.status(200).json(data);
+  return res.status(200).json(rowsSections[0]);
 });
 
 export const getFormationByUser = tryCatchWrapper(async function (req, res, next) {
@@ -489,15 +493,15 @@ export const getFormationByUser = tryCatchWrapper(async function (req, res, next
 
   let sql = `
     SELECT formation.id, titre, formation.description, date_creation,
-      JSON_OBJECT('id', user.id, 'nom', user.nom, 'prenom', user.prenom) as user,
-      IF(COUNT(tag.id) > 0, 
-        JSON_ARRAYAGG(JSON_OBJECT('id', tag.id, 'nom', tag.nom)), JSON_ARRAY()) as tag
-        FROM formation
-        INNER JOIN user ON formation.id_user = user.id
-        LEFT JOIN posseder ON formation.id = posseder.id
-        LEFT JOIN tag ON posseder.id_tag = tag.id
-        WHERE formation.id_user = ?
-        GROUP BY formation.id
+    JSON_OBJECT('id', user.id, 'nom', user.nom, 'prenom', user.prenom) as user,
+    IF(COUNT(tag.id) > 0, 
+      JSON_ARRAYAGG(JSON_OBJECT('id', tag.id, 'nom', tag.nom)), JSON_ARRAY()) as tag
+    FROM formation
+    INNER JOIN user ON formation.id_user = user.id
+    LEFT JOIN posseder ON formation.id = posseder.id
+    LEFT JOIN tag ON posseder.id_tag = tag.id
+    WHERE formation.id_user = ?
+    GROUP BY formation.id
   `;
   const [rows] = await db.query(sql, [id_user]);
 

@@ -8,3 +8,5 @@ public/*/*.png
 
 pnpm-lock.yaml
 request_logs.csv
+
+logs/*g

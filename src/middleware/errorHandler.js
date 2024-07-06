@@ -1,14 +1,14 @@
 import logger from '../scripts/logger.js';
 
 export const handleError = (err, req, res, next) => {
-  // Log the error for debugging purposes
-  logger.error(err);
+  const statusCode = err.statusCode || 500;
+  const message = err.message || "Erreur interne du serveur";
 
-  // Check if the connection header indicates keep-alive
-  if (req.headers.connection === "keep-alive") {
-    return // next(err); // Pass the error to the next middleware or handler
+  logger.error(`Error caught in errorHandler: ${err.message}`);
+    
+  if (!res.headersSent) {
+    return res.status(statusCode).json({ error: message });
+  } else {
+    return next(err);
   }
-
-  // Send a 500 Internal Server Error response
-  return res.status(500).json({ error: "Erreur interne du serveur" });
 };
