@@ -146,7 +146,7 @@ export const add = tryCatchWrapper(async function (req, res, next) {
   let sql = "INSERT INTO formation (titre, description, date_creation, id_user) VALUES ('', '', ?, ?)";
   const [rows] = await db.query(sql, [dateCreation, id_user]);
 
-  const id_formation = rows[0].insertId;
+  const id_formation = rows.insertId;
   let sqlUser = "SELECT id, nom, prenom, email FROM user WHERE id = ?";
   const [rowsUser] = await db.query(sqlUser, [id_user]);
 
@@ -222,7 +222,7 @@ export const getEditors = tryCatchWrapper(async function (req, res, next) {
   `;
   const [rowsContributors] = await db.query(sql, [id_formation]);
 
-  return res.status(200).json([...rows[0], ...rowsContributors[0]]);
+  return res.status(200).json([...rows, ...rowsContributors]);
 });
 
 export const getContributorsByToken = tryCatchWrapper(async function (req, res, next) {
@@ -288,6 +288,7 @@ export const addHeader = tryCatchWrapper(async function (req, res, next) {
   if (!rows.length) {
     return next(createCustomError("Formation non trouvée", 204));
   }
+  console.log(rows[0]);
   return res.status(201).json(rows[0]);
 });
 
@@ -508,7 +509,7 @@ export const getFormationByUser = tryCatchWrapper(async function (req, res, next
   if (!rows.length) {
     return next(createCustomError("Formation non trouvée", 204));
   }
-  return res.status(200).json(rows[0]);
+  return res.status(200).json(rows);
 });
 
 export const getFormationByContributor = tryCatchWrapper(async function (req, res, next) {
@@ -532,7 +533,7 @@ export const getFormationByContributor = tryCatchWrapper(async function (req, re
   if (!rows.length) {
     return next(createCustomError("Formation non trouvée", 204));
   }
-  return res.status(200).json(rows[0]);
+  return res.status(200).json(rows);
 });
 
 export const publish = tryCatchWrapper(async function (req, res, next) {
