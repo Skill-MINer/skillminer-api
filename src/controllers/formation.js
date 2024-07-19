@@ -485,7 +485,7 @@ export const getContenu = tryCatchWrapper(async function (req, res, next) {
     nom,
     contenu
   }));
-  return res.status(200).json(rowsSections[0]);
+  return res.status(200).json(data);
 });
 
 export const getFormationByUser = tryCatchWrapper(async function (req, res, next) {
