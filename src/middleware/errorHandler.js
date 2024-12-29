@@ -1,7 +1,14 @@
+import logger from '../scripts/logger.js';
+
 export const handleError = (err, req, res, next) => {
-  if (req.headers["connection"] === "keep-alive") {
-    return;
+  const statusCode = err.statusCode || 500;
+  const message = err.message || "Erreur interne du serveur";
+
+  logger.error(`Error caught in errorHandler: ${err.message}`);
+    
+  if (!res.headersSent) {
+    return res.status(statusCode).json({ error: message });
+  } else {
+    return next(err);
   }
-  console.log(err);
-  res.status(500).send({ error: "Erreur interne du serveur" });
 };

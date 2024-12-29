@@ -26,13 +26,15 @@
     "gravatar": "^1.8.2",
     "groq-sdk": "^0.3.3",
     "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
     "multer": "1.4.5-lts.1",
     "mysql2": "^3.9.3",
     "nodemailer": "^6.9.13",
     "path": "^0.12.7",
     "socket.io": "^4.7.5",
     "swagger-autogen": "^2.23.7",
-    "swagger-ui-express": "^5.0.0"
+    "swagger-ui-express": "^5.0.0",
+    "winston": "^3.13.0"
   },
   "devDependencies": {
     "colors": "^1.4.0",
